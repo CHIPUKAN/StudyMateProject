@@ -136,7 +136,7 @@ namespace StudyMateProject.ViewModels
             DecimalCommand = new RelayCommand(OnDecimalPressed);
 
             // Научные функции - каждая своя команда для удобства
-            ]SinCommand = new RelayCommand(() => OnScientificFunction("sin"));
+            SinCommand = new RelayCommand(() => OnScientificFunction("sin"));
             CosCommand = new RelayCommand(() => OnScientificFunction("cos"));
             TanCommand = new RelayCommand(() => OnScientificFunction("tan"));
             LogCommand = new RelayCommand(() => OnScientificFunction("log"));
@@ -157,11 +157,10 @@ namespace StudyMateProject.ViewModels
             InsertFromHistoryCommand = new RelayCommand<CalculationResult>(OnInsertFromHistory);
         }
         
-        private void OnNumberPressed(string? number) 
+        private void OnNumberPressed(string? number)
         {
             if (string.IsNullOrEmpty(number)) return;
 
-            // Если только что был выполнен расчет, очищаем дисплей для нового числа
             if (_justCalculated)
             {
                 DisplayText = "0";
@@ -176,16 +175,15 @@ namespace StudyMateProject.ViewModels
             }
             else
             {
-                // Иначе добавляем цифру к существующему числу
-                DisplayText += number;
+                
+                DisplayText += number; // Иначе добавляем цифру к существующему числу
             }
-
-            // Очищаем ошибку, если она была
-            ClearError();
+           
+            ClearError(); // Очищаем ошибку, если она была
         }
 
-        // Обработчик нажатия операторов (+, -, *, /)
-        private void OnOperatorPressed(string? op)
+        
+        private void OnOperatorPressed(string? op) // Обработчик нажатия операторов (+, -, *, /)
         {
             if (string.IsNullOrEmpty(op)) return;
 
@@ -201,8 +199,8 @@ namespace StudyMateProject.ViewModels
             ClearError();
         }
 
-        // Асинхронный обработчик вычисления - может занять время для сложных операций
-        private async Task OnCalculateAsync()
+        
+        private async Task OnCalculateAsync() // Асинхронный обработчик вычисления - может занять время для сложных операций
         {
             try
             {
@@ -213,45 +211,41 @@ namespace StudyMateProject.ViewModels
                 // Если нечего вычислять, выходим
                 if (string.IsNullOrWhiteSpace(DisplayText) || DisplayText == "0")
                     return;
-
-                // Выполняем вычисление через сервис
-                var result = await _calculationService.EvaluateAsync(DisplayText);
+               
+                var result = await _calculationService.EvaluateAsync(DisplayText); // Выполняем вычисление через сервис
 
                 // Обрабатываем результат
                 if (result.HasError)
-                {
-                    // Показываем ошибку пользователю
-                    ShowError(result.ErrorMessage);
+                {                    
+                    ShowError(result.ErrorMessage); // Показываем ошибку пользователю
                 }
                 else
                 {
-                    HistoryText = DisplayText;// Обновляем историю для отображения
-
+                    
+                    HistoryText = DisplayText; // Обновляем историю для отображения
+                   
                     DisplayText = result.FormattedResult; // Показываем результат
-         
+                  
                     AddToHistory(result); // Добавляем в историю
 
                     // Устанавливаем флаги состояния
                     _justCalculated = true;
                     _waitingForOperand = false;
-                 
-                    _integrationService.NotifyCalculationCompleted(result);// Уведомляем сервис интеграции о завершении вычисления
+                   
+                    _integrationService.NotifyCalculationCompleted(result); // Уведомляем сервис интеграции о завершении вычисления
                 }
             }
             catch (Exception ex)
-            {
-                // Обрабатываем неожиданные ошибки
-                ShowError($"Ошибка вычисления: {ex.Message}");
+            {              
+                ShowError($"Ошибка вычисления: {ex.Message}"); // Обрабатываем неожиданные ошибки
             }
             finally
-            {
-                // Всегда скрываем индикатор загрузки
-                IsCalculating = false;
+            {               
+                IsCalculating = false; // Всегда скрываем индикатор загрузки
             }
         }
 
-        // Очистка дисплея
-        private void OnClear()
+        private void OnClear() // Очистка дисплея
         {
             DisplayText = "0";
             HistoryText = "";
@@ -259,9 +253,8 @@ namespace StudyMateProject.ViewModels
             _waitingForOperand = false;
             ClearError();
         }
-
-        // Удаление последнего символа
-        private void OnBackspace()
+        
+        private void OnBackspace() // Удаление последнего символа
         {
             // Если только что вычисляли, Backspace работает как Clear
             if (_justCalculated)
@@ -283,8 +276,8 @@ namespace StudyMateProject.ViewModels
             ClearError();
         }
 
-        // Ввод десятичной точки
-        private void OnDecimalPressed()
+        
+        private void OnDecimalPressed() // Ввод десятичной точки
         {
             // Если только что вычисляли, начинаем новое число
             if (_justCalculated)
@@ -313,9 +306,8 @@ namespace StudyMateProject.ViewModels
 
             ClearError();
         }
-
-        // Обработчик научных функций
-        private void OnScientificFunction(string function)
+       
+        private void OnScientificFunction(string function) // Обработчик научных функций
         {
             // Добавляем функцию с открывающей скобкой
             if (_justCalculated || DisplayText == "0")
@@ -332,8 +324,7 @@ namespace StudyMateProject.ViewModels
             ClearError();
         }
 
-        // Обработчик констант (π, e)
-        private void OnConstantPressed(string constant)
+        private void OnConstantPressed(string constant)  // Обработчик констант (π, e)
         {
             if (_justCalculated || DisplayText == "0" || _waitingForOperand)
             {
@@ -348,23 +339,20 @@ namespace StudyMateProject.ViewModels
             _justCalculated = false;
             ClearError();
         }
-
-        // Переключение отображения истории
-        private void OnToggleHistory()
+      
+        private void OnToggleHistory() // Переключение отображения истории
         {
             ShowHistory = !ShowHistory;
         }
-
-        // Очистка истории
-        private void OnClearHistory()
+      
+        private void OnClearHistory() // Очистка истории
         {
             _history.Clear();
             HistoryItems.Clear();
             RecentResults.Clear();
         }
-
-        // Переключение режима углов (градусы/радианы)
-        private void OnToggleAngleMode()
+      
+        private void OnToggleAngleMode() // Переключение режима углов (градусы/радианы)
         {
             AngleMode = AngleMode == AngleMode.Degrees ? AngleMode.Radians : AngleMode.Degrees;
 
@@ -376,8 +364,8 @@ namespace StudyMateProject.ViewModels
             }
         }
 
-        // Копирование результата в буфер обмена
-        private async void OnCopyResult()
+      
+        private async void OnCopyResult() // Копирование результата в буфер обмена
         {
             try
             {
@@ -385,7 +373,7 @@ namespace StudyMateProject.ViewModels
                 await Microsoft.Maui.ApplicationModel.DataTransfer.Clipboard.SetTextAsync(DisplayText);
 
                 // Можно показать всплывающее уведомление
-                // await Shell.Current.DisplayAlert("Скопировано", "Результат скопирован в буфер обмена", "OK");
+                await Shell.Current.DisplayAlert("Скопировано", "Результат скопирован в буфер обмена", "OK");
             }
             catch (Exception ex)
             {
@@ -404,27 +392,22 @@ namespace StudyMateProject.ViewModels
             ClearError();
         }
 
-        // Добавление результата в историю
-        private void AddToHistory(CalculationResult result)
-        {
-            // Добавляем в модель истории
-            _history.AddCalculation(result);
-
-            // Обновляем коллекции для UI
-            HistoryItems.Insert(0, result);
+        private void AddToHistory(CalculationResult result) // Добавление результата в историю
+        {           
+            _history.AddCalculation(result); // Добавляем в модель истории
+           
+            HistoryItems.Insert(0, result); // Обновляем коллекции для UI
 
             // Ограничиваем количество элементов в UI коллекции для производительности
             while (HistoryItems.Count > 50)
             {
                 HistoryItems.RemoveAt(HistoryItems.Count - 1);
             }
-
-            // Обновляем последние результаты
-            UpdateRecentResults();
+          
+            UpdateRecentResults(); // Обновляем последние результаты
         }
 
-        // Обновление коллекции последних результатов
-        private void UpdateRecentResults()
+        private void UpdateRecentResults() // Обновление коллекции последних результатов
         {
             RecentResults.Clear();
             var recent = _history.GetSuccessful(10);
@@ -434,26 +417,22 @@ namespace StudyMateProject.ViewModels
                 RecentResults.Add(result);
             }
         }
-
-        // Показ ошибки пользователю
-        private void ShowError(string message)
+     
+        private void ShowError(string message) // Показ ошибки пользователю
         {
             ErrorMessage = message;
             HasError = true;
-
-            // Автоматически скрываем ошибку через 5 секунд
-            Task.Delay(5000).ContinueWith(_ => ClearError());
+        
+            Task.Delay(5000).ContinueWith(_ => ClearError()); // Автоматически скрываем ошибку через 5 секунд
         }
-
-        // Очистка ошибки
-        private void ClearError()
+      
+        private void ClearError() // Очистка ошибки
         {
             ErrorMessage = "";
             HasError = false;
         }
-
-        // Асинхронная загрузка настроек
-        private async void LoadSettingsAsync()
+       
+        private async void LoadSettingsAsync() // Асинхронная загрузка настроек
         {
             try
             {
@@ -468,9 +447,8 @@ namespace StudyMateProject.ViewModels
                 ShowError($"Ошибка загрузки настроек: {ex.Message}");
             }
         }
-
-        // Асинхронное сохранение настроек
-        private async void SaveSettingsAsync()
+       
+        private async void SaveSettingsAsync() // Асинхронное сохранение настроек
         {
             try
             {
@@ -484,16 +462,10 @@ namespace StudyMateProject.ViewModels
                 ShowError($"Ошибка сохранения настроек: {ex.Message}");
             }
         }
+     
+        private void OnCalculationCompleted(object? sender, CalculationCompletedEventArgs e) { } // Обработчик события завершения вычисления от сервиса интеграции
 
-        // Обработчик события завершения вычисления от сервиса интеграции
-        private void OnCalculationCompleted(object? sender, CalculationCompletedEventArgs e)
-        {
-            // Здесь можно добавить дополнительную логику
-            // например, автоматическую вставку результата в заметку
-        }
-
-        // Метод для вставки текста извне (например, из заметок)
-        public void InsertText(string text)
+        public void InsertText(string text) // Метод для вставки текста извне (например, из заметок)
         {
             if (string.IsNullOrEmpty(text)) return;
 
@@ -510,25 +482,21 @@ namespace StudyMateProject.ViewModels
             _waitingForOperand = false;
             ClearError();
         }
-
-        // Метод для получения текущего результата
-        public string GetCurrentResult()
+       
+        public string GetCurrentResult() // Метод для получения текущего результата
         {
             return DisplayText;
         }
-
-        // Метод для установки режима калькулятора
-        public async Task SetModeAsync(CalculatorMode mode)
+    
+        public async Task SetModeAsync(CalculatorMode mode) // Метод для установки режима калькулятора
         {
             CurrentMode = mode;
             await _integrationService.SetModeAsync(mode);
-
-            // Настраиваем отображение в зависимости от режима
-            ShowScientificFunctions = mode == CalculatorMode.FullScreen;
+           
+            ShowScientificFunctions = mode == CalculatorMode.FullScreen; // Настраиваем отображение в зависимости от режима
         }
-
-        // Метод для отписки от событий при уничтожении ViewModel
-        public void Dispose()
+        
+        public void Dispose() // Метод для отписки от событий при уничтожении ViewModel
         {
             _integrationService.CalculationCompleted -= OnCalculationCompleted;
         }
