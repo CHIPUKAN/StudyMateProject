@@ -39,7 +39,7 @@ namespace StudyMateProject.Services
         CalculationResult Absolute(double value);
 
         // Константы
-        double Pi { get; }
+        double PI { get; }
         double E { get; }
 
         // Конвертация углов

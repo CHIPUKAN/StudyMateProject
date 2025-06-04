@@ -51,6 +51,7 @@ namespace StudyMateProject.Services
         // Синхронизация между устройствами
         Task SyncCalculationHistoryAsync();
         Task<bool> IsHistorySyncEnabledAsync();
+        void NotifyCalculationCompleted(CalculationResult result);
     }
 
     // Режимы работы калькулятора
