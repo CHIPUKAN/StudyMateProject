@@ -279,15 +279,7 @@
                         FontSize="16"
                         Margin="4,0"/>
 
-                <Button Grid.Column="3"
-                        Text="📚"
-                        Command="{Binding ToggleHistoryCommand}"
-                        BackgroundColor="{StaticResource Secondary}"
-                        TextColor="{StaticResource White}"
-                        HeightRequest="36"
-                        WidthRequest="36"
-                        FontSize="16"
-                        Margin="4,0"/>
+               
 
                 <Button Grid.Column="4"
                         Text="🗑️"

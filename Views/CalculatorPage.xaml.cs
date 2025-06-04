@@ -244,33 +244,11 @@ public partial class CalculatorPage : ContentPage
     {
         try
         {
-            // Вибрация при ошибке (если поддерживается)
-            if (Microsoft.Maui.Authentication.WebAuthenticatorResult.Properties.ContainsKey("HapticFeedback"))
-            {
-                // Здесь можно добавить вибрацию
-                // HapticFeedback.Perform(HapticFeedbackType.Error);
-            }
-
-            // Визуальный эффект ошибки
-            AnimateErrorEffect();
+            
         }
         catch
         {
             // Игнорируем ошибки обратной связи
-        }
-    }
-
-    // Анимация ошибки
-    private async void AnimateErrorEffect()
-    {
-        var calculator = this.FindByName("CalculatorComponent");
-        if (calculator != null)
-        {
-            // Легкое "тряхнуть" калькулятор при ошибке
-            await calculator.TranslateTo(-10, 0, 50);
-            await calculator.TranslateTo(10, 0, 50);
-            await calculator.TranslateTo(-5, 0, 50);
-            await calculator.TranslateTo(0, 0, 50);
         }
     }
 

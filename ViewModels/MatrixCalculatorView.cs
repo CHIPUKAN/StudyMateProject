@@ -8,7 +8,7 @@ using StudyMateProject.Models;
 using StudyMateProject.Services;
 using StudyMateProject.Helpers;
 
-namespace StudyMateProject.Calculator.ViewModels
+namespace StudyMateProject.ViewModels
 {
     // ViewModel для калькулятора матриц - специализированный интерфейс для матричных операций
     public partial class MatrixCalculatorViewModel : ObservableObject
