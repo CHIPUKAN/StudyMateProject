@@ -282,4 +282,3 @@ namespace StudyMateProject.Helpers
         public List<string> Variables { get; set; } = new List<string>();
     }
 }
-}

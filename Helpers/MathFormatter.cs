@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Text;
-using StudyMateProject.Calculator.Models;
+using StudyMateProject.Models;
 using StudyMateProject.Models;
 
 namespace StudyMateProject.Helpers
