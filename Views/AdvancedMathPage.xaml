@@ -1,12 +1,537 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:StudyMateProject.ViewModels"
              x:Class="StudyMateProject.Views.AdvancedMathPage"
-             Title="AdvancedMathPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             x:DataType="viewmodels:AdvancedMathViewModel"
+             Title="Продвинутая математика"
+             Shell.NavBarIsVisible="True">
+
+    <!-- Страница для продвинутых математических операций -->
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Верхняя панель с выбором типа операции -->
+        <Border Grid.Row="0" 
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                Padding="16,12">
+
+            <Grid ColumnDefinitions="*,Auto,Auto">
+
+                <!-- Выбор типа операции -->
+                <Picker Grid.Column="0"
+                        ItemsSource="{Binding OperationTypes}"
+                        SelectedItem="{Binding SelectedOperationType}"
+                        FontSize="16"
+                        TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray700}}"
+                        HorizontalOptions="FillAndExpand"/>
+
+                <!-- Кнопка валидации функции -->
+                <Button Grid.Column="1"
+                        Text="✓"
+                        Command="{Binding ValidateFunctionCommand}"
+                        CommandParameter="{Binding SelectedOperationType, Converter={StaticResource OperationTypeToFunctionConverter}}"
+                        BackgroundColor="{StaticResource Info}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="40"
+                        WidthRequest="40"
+                        FontSize="16"
+                        Margin="8,0"/>
+
+                <!-- Кнопка вычисления -->
+                <Button Grid.Column="2"
+                        Text="Вычислить"
+                        Command="{Binding SelectedOperationType, Converter={StaticResource OperationTypeToCommandConverter}}"
+                        BackgroundColor="{StaticResource Success}"
+                        TextColor="{StaticResource White}"
+                        FontSize="14"
+                        HeightRequest="40"
+                        WidthRequest="100"/>
+
+            </Grid>
+        </Border>
+
+        <!-- Основной контент с вкладками операций -->
+        <ScrollView Grid.Row="1">
+            <StackLayout Padding="16" Spacing="16">
+
+                <!-- Раздел интегралов -->
+                <Border IsVisible="{Binding SelectedOperationType, Converter={StaticResource OperationTypeToVisibilityConverter}, ConverterParameter=Интеграл}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        Padding="16">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
+
+                    <StackLayout Spacing="12">
+
+                        <Label Text="Вычисление определенного интеграла"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
+
+                        <!-- Функция для интегрирования -->
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Grid.Column="0" Text="f(x) =" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding IntegralFunction}"
+                                   Placeholder="Введите функцию, например: x^2 + sin(x)"
+                                   FontFamily="Consolas"
+                                   FontSize="14"
+                                   Margin="8,0"/>
+                            <Button Grid.Column="2"
+                                    Text="📋"
+                                    Command="{Binding LoadExampleCommand}"
+                                    CommandParameter="{Binding IntegralFunction}"
+                                    BackgroundColor="{StaticResource Secondary}"
+                                    TextColor="{StaticResource White}"
+                                    HeightRequest="32"
+                                    WidthRequest="32"
+                                    FontSize="12"/>
+                        </Grid>
+
+                        <!-- Пределы интегрирования -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="От:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding IntegralLowerLimit}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" Text="До:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="3" 
+                                   Text="{Binding IntegralUpperLimit}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Настройки интегрирования -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Метод:" VerticalOptions="Center" FontSize="14"/>
+                            <Picker Grid.Column="1"
+                                    ItemsSource="{Binding IntegrationMethods}"
+                                    SelectedItem="{Binding IntegralMethod}"
+                                    FontSize="14"/>
+                            <Label Grid.Column="2" Text="Шаги:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="3" 
+                                   Text="{Binding IntegralSteps}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Кнопка вычисления интеграла -->
+                        <Button Text="Вычислить интеграл"
+                                Command="{Binding CalculateIntegralCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                FontSize="14"
+                                HorizontalOptions="Center"
+                                WidthRequest="200"/>
+
+                    </StackLayout>
+                </Border>
+
+                <!-- Раздел пределов -->
+                <Border IsVisible="{Binding SelectedOperationType, Converter={StaticResource OperationTypeToVisibilityConverter}, ConverterParameter=Предел}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        Padding="16">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
+
+                    <StackLayout Spacing="12">
+
+                        <Label Text="Вычисление пределов функций"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
+
+                        <!-- Функция -->
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Grid.Column="0" Text="f(x) =" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding LimitFunction}"
+                                   Placeholder="Введите функцию, например: sin(x)/x"
+                                   FontFamily="Consolas"
+                                   FontSize="14"
+                                   Margin="8,0"/>
+                            <Button Grid.Column="2"
+                                    Text="📋"
+                                    Command="{Binding LoadExampleCommand}"
+                                    CommandParameter="{Binding LimitFunction}"
+                                    BackgroundColor="{StaticResource Secondary}"
+                                    TextColor="{StaticResource White}"
+                                    HeightRequest="32"
+                                    WidthRequest="32"
+                                    FontSize="12"/>
+                        </Grid>
+
+                        <!-- Настройки предела -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Переменная:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding LimitVariable}"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" Text="Стремится к:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="3" 
+                                   Text="{Binding LimitApproachingValue}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"
+                                   IsEnabled="{Binding LimitToInfinity, Converter={StaticResource InverseBoolConverter}}"/>
+                        </Grid>
+
+                        <!-- Дополнительные настройки -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                            <CheckBox Grid.Column="0" 
+                                     IsChecked="{Binding LimitToInfinity}"/>
+                            <Label Grid.Column="1" 
+                                   Text="К бесконечности" 
+                                   VerticalOptions="Center" 
+                                   FontSize="14"/>
+                            <Label Grid.Column="2" Text="Тип:" VerticalOptions="Center" FontSize="14"/>
+                            <Picker Grid.Column="3"
+                                    ItemsSource="{Binding ApproachTypes}"
+                                    SelectedItem="{Binding LimitApproachType}"
+                                    FontSize="14"/>
+                        </Grid>
+
+                        <!-- Кнопка вычисления предела -->
+                        <Button Text="Вычислить предел"
+                                Command="{Binding CalculateLimitCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                FontSize="14"
+                                HorizontalOptions="Center"
+                                WidthRequest="200"/>
+
+                    </StackLayout>
+                </Border>
+
+                <!-- Раздел рядов -->
+                <Border IsVisible="{Binding SelectedOperationType, Converter={StaticResource OperationTypeToVisibilityConverter}, ConverterParameter=Ряд}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        Padding="16">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
+
+                    <StackLayout Spacing="12">
+
+                        <Label Text="Вычисление сумм рядов"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
+
+                        <!-- Формула ряда -->
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Grid.Column="0" Text="a(n) =" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding SeriesFormula}"
+                                   Placeholder="Введите формулу, например: 1/n^2"
+                                   FontFamily="Consolas"
+                                   FontSize="14"
+                                   Margin="8,0"/>
+                            <Button Grid.Column="2"
+                                    Text="📋"
+                                    Command="{Binding LoadExampleCommand}"
+                                    CommandParameter="{Binding SeriesFormula}"
+                                    BackgroundColor="{StaticResource Secondary}"
+                                    TextColor="{StaticResource White}"
+                                    HeightRequest="32"
+                                    WidthRequest="32"
+                                    FontSize="12"/>
+                        </Grid>
+
+                        <!-- Настройки ряда -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Переменная:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding SeriesVariable}"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" Text="Начало:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="3" 
+                                   Text="{Binding SeriesStartIndex}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Тип ряда -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                            <CheckBox Grid.Column="0" 
+                                     IsChecked="{Binding SeriesIsInfinite}"/>
+                            <Label Grid.Column="1" 
+                                   Text="Бесконечный ряд" 
+                                   VerticalOptions="Center" 
+                                   FontSize="14"/>
+                            <Label Grid.Column="2" 
+                                   Text="Конец:" 
+                                   VerticalOptions="Center" 
+                                   FontSize="14"
+                                   IsVisible="{Binding SeriesIsInfinite, Converter={StaticResource InverseBoolConverter}}"/>
+                            <Entry Grid.Column="3" 
+                                   Text="{Binding SeriesEndIndex}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"
+                                   IsVisible="{Binding SeriesIsInfinite, Converter={StaticResource InverseBoolConverter}}"/>
+                        </Grid>
+
+                        <!-- Максимальное количество членов -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Макс. членов:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding SeriesMaxTerms}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Кнопка вычисления ряда -->
+                        <Button Text="Вычислить ряд"
+                                Command="{Binding CalculateSeriesCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                FontSize="14"
+                                HorizontalOptions="Center"
+                                WidthRequest="200"/>
+
+                    </StackLayout>
+                </Border>
+
+                <!-- Раздел производных -->
+                <Border IsVisible="{Binding SelectedOperationType, Converter={StaticResource OperationTypeToVisibilityConverter}, ConverterParameter=Производная}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        Padding="16">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
+
+                    <StackLayout Spacing="12">
+
+                        <Label Text="Вычисление производных"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"/>
+
+                        <!-- Функция -->
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Label Grid.Column="0" Text="f(x) =" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding DerivativeFunction}"
+                                   Placeholder="Введите функцию, например: x^3 + 2*x^2"
+                                   FontFamily="Consolas"
+                                   FontSize="14"
+                                   Margin="8,0"/>
+                            <Button Grid.Column="2"
+                                    Text="📋"
+                                    Command="{Binding LoadExampleCommand}"
+                                    CommandParameter="{Binding DerivativeFunction}"
+                                    BackgroundColor="{StaticResource Secondary}"
+                                    TextColor="{StaticResource White}"
+                                    HeightRequest="32"
+                                    WidthRequest="32"
+                                    FontSize="12"/>
+                        </Grid>
+
+                        <!-- Настройки производной -->
+                        <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Переменная:" VerticalOptions="Center" FontSize="14"/>
+                            <Entry Grid.Column="1" 
+                                   Text="{Binding DerivativeVariable}"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Grid.Column="2" 
+                                   Text="В точке:" 
+                                   VerticalOptions="Center" 
+                                   FontSize="14"
+                                   IsVisible="{Binding UseSymbolicDerivative, Converter={StaticResource InverseBoolConverter}}"/>
+                            <Entry Grid.Column="3" 
+                                   Text="{Binding DerivativePoint}"
+                                   Keyboard="Numeric"
+                                   FontSize="14"
+                                   HorizontalTextAlignment="Center"
+                                   IsVisible="{Binding UseSymbolicDerivative, Converter={StaticResource InverseBoolConverter}}"/>
+                        </Grid>
+
+                        <!-- Тип производной -->
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <CheckBox Grid.Column="0" 
+                                     IsChecked="{Binding UseSymbolicDerivative}"/>
+                            <Label Grid.Column="1" 
+                                   Text="Символьная производная" 
+                                   VerticalOptions="Center" 
+                                   FontSize="14"/>
+                        </Grid>
+
+                        <!-- Кнопка вычисления производной -->
+                        <Button Text="Вычислить производную"
+                                Command="{Binding CalculateDerivativeCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                FontSize="14"
+                                HorizontalOptions="Center"
+                                WidthRequest="200"/>
+
+                    </StackLayout>
+                </Border>
+
+                <!-- Область результата -->
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource Gray50}, Dark={StaticResource Gray850}}"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                        StrokeThickness="1"
+                        HeightRequest="120"
+                        Padding="16">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
+
+                    <StackLayout Spacing="12">
+
+                        <Label Text="Результат вычислений"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                               HorizontalOptions="Center"/>
+
+                        <!-- Основной результат -->
+                        <Label Text="{Binding OperationResult}"
+                               FontSize="18"
+                               FontFamily="Consolas"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               IsVisible="{Binding OperationResult, Converter={StaticResource IsStringNotNullOrEmptyConverter}}"/>
+
+                        <!-- Детали результата -->
+                        <Label Text="{Binding ResultDetails}"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                               HorizontalOptions="Start"
+                               IsVisible="{Binding ResultDetails, Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
+                               LineBreakMode="WordWrap"/>
+
+                        <!-- Индикатор вычислений -->
+                        <StackLayout Orientation="Horizontal"
+                                    HorizontalOptions="Center"
+                                    Spacing="8"
+                                    IsVisible="{Binding IsCalculating}">
+                            <ActivityIndicator IsRunning="{Binding IsCalculating}"
+                                              Color="{StaticResource Primary}"
+                                              HeightRequest="24"/>
+                            <Label Text="{Binding StatusMessage}"
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                   VerticalOptions="Center"/>
+                        </StackLayout>
+
+                        <!-- Сообщение об ошибке -->
+                        <Border IsVisible="{Binding HasError}"
+                               BackgroundColor="{StaticResource DangerLight}"
+                               Stroke="{StaticResource Danger}"
+                               StrokeThickness="1"
+                               Padding="12">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="4"/>
+                            </Border.StrokeShape>
+                            <Label Text="{Binding ErrorMessage}"
+                                   TextColor="{StaticResource Danger}"
+                                   FontSize="12"
+                                   LineBreakMode="WordWrap"/>
+                        </Border>
+
+                    </StackLayout>
+                </Border>
+
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Нижняя панель с дополнительными действиями -->
+        <Border Grid.Row="2"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                Padding="16,8">
+
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+
+                <!-- Статус -->
+                <Label Grid.Column="0"
+                       Text="{Binding StatusMessage}"
+                       FontSize="12"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                       VerticalOptions="Center"/>
+
+                <!-- Кнопки действий -->
+                <Button Grid.Column="1"
+                        Text="📋"
+                        Command="{Binding CopyResultCommand}"
+                        BackgroundColor="{StaticResource Info}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        FontSize="16"
+                        Margin="4,0"/>
+
+                <Button Grid.Column="2"
+                        Text="📤"
+                        Command="{Binding ExportResultCommand}"
+                        BackgroundColor="{StaticResource Info}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        FontSize="16"
+                        Margin="4,0"/>
+
+                <Button Grid.Column="3"
+                        Text="📊"
+                        Command="{Binding PlotFunctionCommand}"
+                        BackgroundColor="{StaticResource Secondary}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        FontSize="16"
+                        Margin="4,0"/>
+
+                <Button Grid.Column="4"
+                        Text="📚"
+                        Command="{Binding ClearHistoryCommand}"
+                        BackgroundColor="{StaticResource Warning}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        FontSize="16"
+                        Margin="4,0"/>
+
+                <Button Grid.Column="5"
+                        Text="💡"
+                        Command="{Binding LoadExampleCommand}"
+                        BackgroundColor="{StaticResource Tertiary}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        FontSize="16"
+                        Margin="4,0"/>
+
+            </Grid>
+        </Border>
+
+    </Grid>
 </ContentPage>

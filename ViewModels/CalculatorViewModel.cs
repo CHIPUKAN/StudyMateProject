@@ -181,8 +181,7 @@ namespace StudyMateProject.ViewModels
            
             ClearError(); // Очищаем ошибку, если она была
         }
-
-        
+       
         private void OnOperatorPressed(string? op) // Обработчик нажатия операторов (+, -, *, /)
         {
             if (string.IsNullOrEmpty(op)) return;
@@ -198,7 +197,6 @@ namespace StudyMateProject.ViewModels
 
             ClearError();
         }
-
         
         private async Task OnCalculateAsync() // Асинхронный обработчик вычисления - может занять время для сложных операций
         {
@@ -276,7 +274,6 @@ namespace StudyMateProject.ViewModels
             ClearError();
         }
 
-        
         private void OnDecimalPressed() // Ввод десятичной точки
         {
             // Если только что вычисляли, начинаем новое число
@@ -363,7 +360,6 @@ namespace StudyMateProject.ViewModels
                 SaveSettingsAsync();
             }
         }
-
       
         private async void OnCopyResult() // Копирование результата в буфер обмена
         {
