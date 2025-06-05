@@ -28,7 +28,6 @@
                        TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
                        HorizontalOptions="End"
                        VerticalOptions="Center"
-                       IsVisible="{Binding HistoryText, Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
                        LineBreakMode="TailTruncation"/>
 
                 <!-- Основной результат -->

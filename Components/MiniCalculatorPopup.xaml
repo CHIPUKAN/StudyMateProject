@@ -38,7 +38,7 @@
 
                 <!-- Кнопка компактного режима -->
                 <Button Grid.Column="1"
-                        Text="{Binding IsCompactMode, Converter={StaticResource BoolToCompactTextConverter}}"
+                        Text="⌐"
                         Command="{Binding ToggleCompactCommand}"
                         BackgroundColor="{StaticResource Secondary}"
                         TextColor="{StaticResource White}"
@@ -72,8 +72,7 @@
                         Orientation="Horizontal" 
                         HorizontalOptions="Center"
                         Spacing="8"
-                        Margin="0,8,0,0"
-                        IsVisible="{Binding IsCompactMode, Converter={StaticResource InverseBoolConverter}}">
+                        Margin="0,8,0,0">
 
                 <!-- Быстрые действия -->
                 <Button Text="📋" 
@@ -103,7 +102,6 @@
                         IsVisible="{Binding ShowExpandButton}"/>
 
                 <Button Text="⚙️" 
-                        Command="{Binding ShowSettingsCommand}"
                         BackgroundColor="{StaticResource Secondary}"
                         TextColor="{StaticResource White}"
                         HeightRequest="36"

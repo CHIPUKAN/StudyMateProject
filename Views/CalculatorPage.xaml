@@ -23,23 +23,28 @@
                     <StackLayout Orientation="Horizontal" Spacing="8">
 
                         <Button Text="Обычный" 
-                                Command="{Binding SwitchToBasicCommand}"
-                                Style="{DynamicResource CalculatorTabButtonStyle}"
-                                IsEnabled="{Binding CurrentCalculatorType, 
-                                           Converter={StaticResource EnumToBoolConverter}, 
-                                           ConverterParameter=Basic}"/>
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="{StaticResource White}"
+                                HeightRequest="36"
+                                FontSize="14"/>
 
                         <Button Text="Научный" 
-                                Command="{Binding SwitchToScientificCommand}"
-                                Style="{DynamicResource CalculatorTabButtonStyle}"/>
+                                BackgroundColor="{StaticResource Secondary}"
+                                TextColor="{StaticResource White}"
+                                HeightRequest="36"
+                                FontSize="14"/>
 
                         <Button Text="Матрицы" 
-                                Command="{Binding SwitchToMatrixCommand}"
-                                Style="{DynamicResource CalculatorTabButtonStyle}"/>
+                                BackgroundColor="{StaticResource Secondary}"
+                                TextColor="{StaticResource White}"
+                                HeightRequest="36"
+                                FontSize="14"/>
 
                         <Button Text="Продвинутый" 
-                                Command="{Binding SwitchToAdvancedCommand}"
-                                Style="{DynamicResource CalculatorTabButtonStyle}"/>
+                                BackgroundColor="{StaticResource Secondary}"
+                                TextColor="{StaticResource White}"
+                                HeightRequest="36"
+                                FontSize="14"/>
 
                     </StackLayout>
                 </ScrollView>
@@ -47,16 +52,22 @@
                 <!-- Кнопка настроек -->
                 <Button Grid.Column="1"
                         Text="⚙️"
-                        Command="{Binding ShowSettingsCommand}"
-                        Style="{DynamicResource CalculatorHeaderButtonStyle}"
+                        BackgroundColor="{StaticResource Secondary}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        FontSize="16"
                         Margin="8,0"/>
 
                 <!-- Кнопка истории -->
                 <Button Grid.Column="2"
-                        Text="{Binding ShowHistory, 
-                               Converter={StaticResource BoolToHistoryIconConverter}}"
+                        Text="📚"
                         Command="{Binding ToggleHistoryCommand}"
-                        Style="{DynamicResource CalculatorHeaderButtonStyle}"/>
+                        BackgroundColor="{StaticResource Info}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="36"
+                        WidthRequest="36"
+                        FontSize="16"/>
 
             </Grid>
         </Border>
@@ -97,7 +108,7 @@
                     <CollectionView Grid.Row="1"
                                    ItemsSource="{Binding HistoryItems}"
                                    SelectionMode="Single"
-                                   SelectedItem="{Binding SelectedHistoryItem}">
+                                   >
 
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
@@ -107,7 +118,7 @@
 
                                     <!-- Время -->
                                     <Label Grid.Row="0"
-                                           Text="{Binding Timestamp, StringFormat='{0:HH:mm:ss}'}"
+                                           
                                            FontSize="10"
                                            TextColor="{DynamicResource CalculatorHistoryTimeColor}"/>
 
@@ -117,12 +128,10 @@
                                            TextColor="{DynamicResource CalculatorHistoryTextColor}">
                                         <Label.FormattedText>
                                             <FormattedString>
-                                                <Span Text="{Binding Expression}" 
-                                                      TextColor="{DynamicResource CalculatorHistoryExpressionColor}"/>
+                                                
+                                                      
                                                 <Span Text=" = "/>
-                                                <Span Text="{Binding FormattedResult}" 
-                                                      FontAttributes="Bold"
-                                                      TextColor="{DynamicResource CalculatorHistoryResultColor}"/>
+                                                
                                             </FormattedString>
                                         </Label.FormattedText>
                                     </Label>
@@ -146,11 +155,16 @@
 
                         <Button Text="Очистить"
                                 Command="{Binding ClearHistoryCommand}"
-                                Style="{DynamicResource CalculatorHistoryButtonStyle}"/>
+                                BackgroundColor="{StaticResource Warning}"
+                                TextColor="{StaticResource White}"
+                                HeightRequest="32"
+                                FontSize="12"/>
 
                         <Button Text="Экспорт"
-                                Command="{Binding ExportHistoryCommand}"
-                                Style="{DynamicResource CalculatorHistoryButtonStyle}"/>
+                                BackgroundColor="{StaticResource Info}"
+                                TextColor="{StaticResource White}"
+                                HeightRequest="32"
+                                FontSize="12"/>
 
                     </StackLayout>
 
@@ -163,7 +177,7 @@
         <Border Grid.Row="2"
                 BackgroundColor="{DynamicResource CalculatorFooterBackgroundColor}"
                 Padding="16,8"
-                IsVisible="{Binding ShowStatusBar}">
+                >
 
             <Grid ColumnDefinitions="*,Auto,Auto">
 
@@ -192,8 +206,11 @@
                 <Button Grid.Column="2"
                         Text="📋"
                         Command="{Binding CopyResultCommand}"
-                        Style="{DynamicResource CalculatorFooterButtonStyle}"
-                        ToolTipProperties.Text="Скопировать результат"/>
+                        BackgroundColor="{StaticResource Info}"
+                        TextColor="{StaticResource White}"
+                        HeightRequest="32"
+                        WidthRequest="32"
+                        FontSize="16"/>
 
             </Grid>
         </Border>

@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Text;
 using StudyMateProject.Models;
-using StudyMateProject.Models;
 
 namespace StudyMateProject.Helpers
 {
@@ -197,5 +196,12 @@ namespace StudyMateProject.Helpers
         {
             return Math.Abs(number) >= 1e12 || (Math.Abs(number) <= 1e-4 && number != 0);
         }
+
+        // Дополнительные методы форматирования для MathFormatter
+
+        public static string FormatForDisplay(CalculationResult result)
+        {
+            return $"{result.Expression} = {result.FormattedResult}";
+        }        
     }
 }
