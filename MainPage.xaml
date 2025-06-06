@@ -1,36 +1,142 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage x:Class="StudyMateProject.MainPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="StudyMateProject.MainPage">
+             Title="StudyMate - Главная"
+             BackgroundColor="{StaticResource BackgroundColor}">
 
     <ScrollView>
-        <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
-            <Image
-                Source="dotnet_bot.png"
-                HeightRequest="185"
-                Aspect="AspectFit"
-                SemanticProperties.Description="dot net bot in a race car number eight" />
+        <StackLayout Padding="20" Spacing="20">
 
-            <Label
-                Text="Hello, World!"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
+            <!-- Приветствие -->
+            <Frame Style="{StaticResource CardFrame}">
+                <StackLayout>
+                    <Label Text="👋 Добро пожаловать в StudyMate!" 
+                           Style="{StaticResource HeaderStyle}"
+                           HorizontalOptions="Center" />
+                    <Label Text="Ваш персональный помощник для учебы" 
+                           FontSize="16"
+                           TextColor="{StaticResource SecondaryTextColor}"
+                           HorizontalOptions="Center" />
+                </StackLayout>
+            </Frame>
 
-            <Label
-                Text="Welcome to &#10;.NET Multi-platform App UI"
-                Style="{StaticResource SubHeadline}"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I" />
+            <!-- Быстрые действия -->
+            <Label Text="Быстрые действия" Style="{StaticResource SubHeaderStyle}" />
 
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me" 
-                SemanticProperties.Hint="Counts chikchirik ADIS number of times you click"
-                Clicked="OnCounterClicked"
-                HorizontalOptions="Fill" />
-        </VerticalStackLayout>
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="15" ColumnSpacing="15">
+
+                <!-- Создать заметку -->
+                <Frame Grid.Row="0" Grid.Column="0" Style="{StaticResource CardFrame}">
+                    <StackLayout>
+                        <Label Text="📝" FontSize="30" HorizontalOptions="Center" />
+                        <Label Text="Создать заметку" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Button Text="Перейти" 
+                                Style="{StaticResource SecondaryButton}"
+                                Clicked="OnCreateNoteClicked" />
+                    </StackLayout>
+                </Frame>
+
+                <!-- Калькулятор -->
+                <Frame Grid.Row="0" Grid.Column="1" Style="{StaticResource CardFrame}">
+                    <StackLayout>
+                        <Label Text="🧮" FontSize="30" HorizontalOptions="Center" />
+                        <Label Text="Калькулятор" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Button Text="Открыть" 
+                                Style="{StaticResource SecondaryButton}"
+                                Clicked="OnCalculatorClicked" />
+                    </StackLayout>
+                </Frame>
+
+                <!-- Рисование -->
+                <Frame Grid.Row="1" Grid.Column="0" Style="{StaticResource CardFrame}">
+                    <StackLayout>
+                        <Label Text="🎨" FontSize="30" HorizontalOptions="Center" />
+                        <Label Text="Рисование" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Button Text="Перейти" 
+                                Style="{StaticResource SecondaryButton}"
+                                Clicked="OnDrawingClicked" />
+                    </StackLayout>
+                </Frame>
+
+                <!-- Напоминания -->
+                <Frame Grid.Row="1" Grid.Column="1" Style="{StaticResource CardFrame}">
+                    <StackLayout>
+                        <Label Text="⏰" FontSize="30" HorizontalOptions="Center" />
+                        <Label Text="Напоминания" FontSize="14" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Button Text="Перейти" 
+                                Style="{StaticResource SecondaryButton}"
+                                Clicked="OnRemindersClicked" />
+                    </StackLayout>
+                </Frame>
+
+            </Grid>
+
+            <!-- Последние заметки -->
+            <Label Text="Последние заметки" Style="{StaticResource SubHeaderStyle}" />
+
+            <Frame Style="{StaticResource CardFrame}">
+                <StackLayout x:Name="RecentNotesContainer">
+                    <Label Text="У вас пока нет заметок" 
+                           TextColor="{StaticResource SecondaryTextColor}"
+                           HorizontalOptions="Center"
+                           Margin="0,20" />
+                    <Button Text="Создать первую заметку" 
+                            Style="{StaticResource PrimaryButton}"
+                            Clicked="OnCreateNoteClicked" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Статистика -->
+            <Label Text="Статистика" Style="{StaticResource SubHeaderStyle}" />
+
+            <Frame Style="{StaticResource CardFrame}">
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*,*" RowSpacing="10" ColumnSpacing="10">
+
+                    <StackLayout Grid.Row="0" Grid.Column="0">
+                        <Label Text="📄" FontSize="24" HorizontalOptions="Center" />
+                        <Label x:Name="NotesCountLabel" Text="0" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Label Text="Заметок" FontSize="12" HorizontalOptions="Center" TextColor="{StaticResource SecondaryTextColor}" />
+                    </StackLayout>
+
+                    <StackLayout Grid.Row="0" Grid.Column="1">
+                        <Label Text="🎨" FontSize="24" HorizontalOptions="Center" />
+                        <Label x:Name="DrawingsCountLabel" Text="0" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Label Text="Рисунков" FontSize="12" HorizontalOptions="Center" TextColor="{StaticResource SecondaryTextColor}" />
+                    </StackLayout>
+
+                    <StackLayout Grid.Row="0" Grid.Column="2">
+                        <Label Text="⏰" FontSize="24" HorizontalOptions="Center" />
+                        <Label x:Name="RemindersCountLabel" Text="0" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Label Text="Напоминаний" FontSize="12" HorizontalOptions="Center" TextColor="{StaticResource SecondaryTextColor}" />
+                    </StackLayout>
+
+                    <!-- Прогресс -->
+                    <StackLayout Grid.Row="1" Grid.ColumnSpan="3" Margin="0,20,0,0">
+                        <Label Text="Прогресс за неделю" FontSize="16" FontAttributes="Bold" />
+                        <ProgressBar x:Name="WeekProgressBar" Progress="0.3" ProgressColor="{StaticResource PrimaryColor}" />
+                        <Label Text="3 из 10 целей выполнено" FontSize="12" TextColor="{StaticResource SecondaryTextColor}" />
+                    </StackLayout>
+
+                </Grid>
+            </Frame>
+
+            <!-- Советы дня -->
+            <Label Text="Совет дня" Style="{StaticResource SubHeaderStyle}" />
+
+            <Frame Style="{StaticResource CardFrame}" BackgroundColor="{StaticResource PrimaryColor}">
+                <StackLayout>
+                    <Label Text="💡" FontSize="30" HorizontalOptions="Center" />
+                    <Label x:Name="TipOfDayLabel" 
+                           Text="Используйте калькулятор для быстрых вычислений во время учебы!"
+                           FontSize="16"
+                           TextColor="White"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center" />
+                </StackLayout>
+            </Frame>
+
+        </StackLayout>
     </ScrollView>
 
 </ContentPage>

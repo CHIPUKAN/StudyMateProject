@@ -1,501 +1,343 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using StudyMateProject.Models;
 using StudyMateProject.Services;
-using StudyMateProject.Helpers;
 
 namespace StudyMateProject.ViewModels
 {
-    public partial class CalculatorViewModel : ObservableObject
+    partial class CalculatorViewModel : INotifyPropertyChanged
     {
-        private readonly ICalculationService _calculationService;
-        private readonly ICalculatorIntegrationService _integrationService;
+        private readonly ICalculatorService _calculatorService;
+        private readonly CalculatorModel _calculatorModel;
 
-        private readonly CalculationHistory _history; // История всех вычислений
-        
-        private CalculatorSettings _settings; // Текущие настройки калькулятора
-
-        private bool _justCalculated = false; // Флаг, показывающий, был ли расчет сейчас
-
-        private bool _waitingForOperand = false; // Флаг показывающий, ожидается ли ввод операнда после оператора
-
-        // Основной дисплей калькулятора - показывает текущее выражение или результат
-        // [ObservableProperty] автоматически создает свойство с уведомлениями
-        [ObservableProperty]
-        public string displayText = "0";
-
-        // Доп. дисплей для показа истории операций
-        [ObservableProperty]
-        public string historyText = "";
-
-        // Режим калькулятора
-        [ObservableProperty]
-        private CalculatorMode currentMode = CalculatorMode.FullScreen;
-
-        // Показывать ли научные функции (sin, cos, log и т.д.)
-        [ObservableProperty]
-        private bool showScientificFunctions = true;
-
-        // Показывать ли панель истории
-        [ObservableProperty]
-        private bool showHistory = false;
-
-        // Режим углов - градусы или радианы для тригонометрических функций
-        [ObservableProperty]
-        private AngleMode angleMode = AngleMode.Degrees;
-
-        // Флаг показывающий, идет ли сейчас вычисление (для показа загрузки)
-        [ObservableProperty]
-        private bool isCalculating = false;
-
-        // Текст ошибки, если что-то пошло не так
-        [ObservableProperty]
-        private string errorMessage = "";
-
-        // Показывать ли сообщение об ошибке
-        [ObservableProperty]
-        private bool hasError = false;
-
-
-        public ObservableCollection<CalculationResult> RecentResults { get; }  // Коллекция для быстрого доступа к последним результатам
-
-        public ObservableCollection<CalculationResult> HistoryItems { get; } // Коллекция для отображения историй вычислений
-
-        public ICommand NumberCommand { get; private set; } // Команда для ввода 0-9
-
-        public ICommand OperatorCommand { get; private set; } // Команда для ввода операторов (+, -, *, /)
-
-        public ICommand CalculateCommand { get; private set; } // Команда для выполнения вычисления (кнопка "=")
-      
-        public ICommand ClearCommand { get; private set; } // Команда для очистки дисплея (кнопка "C")
-        
-        public ICommand BackspaceCommand { get; private set; } // Команда для удаления последнего символа (кнопка "⌫")
-        
-        public ICommand DecimalCommand { get; private set; } // Команда для ввода десятичной точки
-
-        // Команды для научных функций
-        public ICommand SinCommand { get; private set; }
-        public ICommand CosCommand { get; private set; }
-        public ICommand TanCommand { get; private set; }
-        public ICommand LogCommand { get; private set; }
-        public ICommand LnCommand { get; private set; }
-        public ICommand SqrtCommand { get; private set; }
-        public ICommand PowerCommand { get; private set; }
-        public ICommand FactorialCommand { get; private set; }
-
-        // Команды для констант
-        public ICommand PiCommand { get; private set; }
-        public ICommand ECommand { get; private set; }
-
-        // Команды для управления
-        public ICommand ToggleHistoryCommand { get; private set; }
-        public ICommand ClearHistoryCommand { get; private set; }
-        public ICommand ToggleAngleModeCommand { get; private set; }
-        public ICommand CopyResultCommand { get; private set; }
-        public ICommand InsertFromHistoryCommand { get; private set; }
-
-        public CalculatorViewModel (ICalculationService calculationService, ICalculatorIntegrationService integrationService)
+        public CalculatorViewModel()
         {
-            // Внедряем зависимости через конструктор (Dependency Injection)
-            _calculationService = calculationService ?? throw new ArgumentNullException(nameof(calculationService));
-            _integrationService = integrationService ?? throw new ArgumentNullException(nameof(_integrationService));
-
-
-            // Инициализируем коллекции
-            HistoryItems = new ObservableCollection<CalculationResult>();
-            RecentResults = new ObservableCollection<CalculationResult>();
-
-            // Создаем новую историю вычислений
-            _history = new CalculationHistory();
-
-            // Загружаем настройки
-            LoadSettingsAsync();
-
-            // Инициализируем команды
-            InitializeCommands();
-
-            // Подписываемся на события сервиса интеграции
-            _integrationService.CalculationCompleted += OnCalculationCompleted;
+            _calculatorService = new CalculatorService();
+            _calculatorModel = new CalculatorModel();
         }
 
-        private void InitializeCommands()
+        public CalculatorViewModel(ICalculatorService calculatorService)
         {
-            NumberCommand = new RelayCommand<string>(OnNumberPressed); // Команды ввода чисел - передаем параметр (цифру) в метод
-
-            OperatorCommand = new RelayCommand<string>(OnOperatorPressed); // Команды операторов
-
-            CalculateCommand = new AsyncRelayCommand(OnCalculateAsync); // Команда вычисления - асинхронная, так как может занять время
-
-            // Команды управления
-            ClearCommand = new RelayCommand(OnClear);
-            BackspaceCommand = new RelayCommand(OnBackspace);
-            DecimalCommand = new RelayCommand(OnDecimalPressed);
-
-            // Научные функции - каждая своя команда для удобства
-            SinCommand = new RelayCommand(() => OnScientificFunction("sin"));
-            CosCommand = new RelayCommand(() => OnScientificFunction("cos"));
-            TanCommand = new RelayCommand(() => OnScientificFunction("tan"));
-            LogCommand = new RelayCommand(() => OnScientificFunction("log"));
-            LnCommand = new RelayCommand(() => OnScientificFunction("ln"));
-            SqrtCommand = new RelayCommand(() => OnScientificFunction("sqrt"));
-            PowerCommand = new RelayCommand(() => OnOperatorPressed("^"));
-            FactorialCommand = new RelayCommand(() => OnScientificFunction("fact"));
-
-            // Константы
-            PiCommand = new RelayCommand(() => OnConstantPressed("π"));
-            ECommand = new RelayCommand(() => OnConstantPressed("e"));
-
-            // Команды управления интерфейсом
-            ToggleHistoryCommand = new RelayCommand(OnToggleHistory);
-            ClearHistoryCommand = new RelayCommand(OnClearHistory);
-            ToggleAngleModeCommand = new RelayCommand(OnToggleAngleMode);
-            CopyResultCommand = new RelayCommand(OnCopyResult);
-            InsertFromHistoryCommand = new RelayCommand<CalculationResult>(OnInsertFromHistory);
+            _calculatorService = calculatorService;
+            _calculatorModel = new CalculatorModel();
         }
-        
-        private void OnNumberPressed(string? number)
-        {
-            if (string.IsNullOrEmpty(number)) return;
 
-            if (_justCalculated)
+        #region Properties
+
+        public string DisplayValue
+        {
+            get => _calculatorModel.DisplayValue;
+            set
             {
-                DisplayText = "0";
-                _justCalculated = false;
+                _calculatorModel.DisplayValue = value;
+                OnPropertyChanged();
             }
+        }
 
-            // Если дисплей показывает "0" или мы ждем операнд, заменяем содержимое
-            if (DisplayText == "0" || _waitingForOperand)
+        public string CurrentExpression
+        {
+            get => _calculatorModel.CurrentExpression;
+            set
             {
-                DisplayText = number;
-                _waitingForOperand = false;
+                _calculatorModel.CurrentExpression = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public double LastResult
+        {
+            get => _calculatorModel.LastResult;
+            set
+            {
+                _calculatorModel.LastResult = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsNewCalculation
+        {
+            get => _calculatorModel.IsNewCalculation;
+            set
+            {
+                _calculatorModel.IsNewCalculation = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool HasDecimalPoint
+        {
+            get => _calculatorModel.HasDecimalPoint;
+            set
+            {
+                _calculatorModel.HasDecimalPoint = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public List<string> History => _calculatorModel.History;
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Обработка ввода цифры
+        /// </summary>
+        /// <param name="number">Цифра в виде строки</param>
+        public void InputNumber(string number)
+        {
+            if (IsNewCalculation)
+            {
+                DisplayValue = number == "0" ? "0" : number;
+                CurrentExpression = number;
+                IsNewCalculation = false;
             }
             else
             {
-                
-                DisplayText += number; // Иначе добавляем цифру к существующему числу
-            }
-           
-            ClearError(); // Очищаем ошибку, если она была
-        }
-       
-        private void OnOperatorPressed(string? op) // Обработчик нажатия операторов (+, -, *, /)
-        {
-            if (string.IsNullOrEmpty(op)) return;
-
-            // Если мы не ждем операнд и выражение не пустое, можно добавить оператор
-            if (!_waitingForOperand && !string.IsNullOrEmpty(DisplayText))
-            {
-                // Добавляем пробелы вокруг оператора для читаемости
-                DisplayText += $" {op} ";
-                _waitingForOperand = true;
-                _justCalculated = false;
-            }
-
-            ClearError();
-        }
-        
-        private async Task OnCalculateAsync() // Асинхронный обработчик вычисления - может занять время для сложных операций
-        {
-            try
-            {
-                // Показываем индикатор загрузки
-                IsCalculating = true;
-                ClearError();
-
-                // Если нечего вычислять, выходим
-                if (string.IsNullOrWhiteSpace(DisplayText) || DisplayText == "0")
-                    return;
-               
-                var result = await _calculationService.EvaluateAsync(DisplayText); // Выполняем вычисление через сервис
-
-                // Обрабатываем результат
-                if (result.HasError)
-                {                    
-                    ShowError(result.ErrorMessage); // Показываем ошибку пользователю
+                if (DisplayValue == "0")
+                {
+                    DisplayValue = number;
+                    CurrentExpression = number;
                 }
                 else
                 {
-                    
-                    HistoryText = DisplayText; // Обновляем историю для отображения
-                   
-                    DisplayText = result.FormattedResult; // Показываем результат
-                  
-                    AddToHistory(result); // Добавляем в историю
-
-                    // Устанавливаем флаги состояния
-                    _justCalculated = true;
-                    _waitingForOperand = false;
-                   
-                    _integrationService.NotifyCalculationCompleted(result); // Уведомляем сервис интеграции о завершении вычисления
+                    DisplayValue += number;
+                    CurrentExpression += number;
                 }
             }
-            catch (Exception ex)
-            {              
-                ShowError($"Ошибка вычисления: {ex.Message}"); // Обрабатываем неожиданные ошибки
+        }
+
+        /// <summary>
+        /// Обработка ввода оператора
+        /// </summary>
+        /// <param name="operatorSymbol">Символ оператора</param>
+        public void InputOperator(string operatorSymbol)
+        {
+            // Конвертируем отображаемые символы в математические
+            string mathOperator = ConvertOperatorSymbol(operatorSymbol);
+
+            if (!IsNewCalculation)
+            {
+                CurrentExpression += $" {mathOperator} ";
+                _calculatorModel.LastOperation = mathOperator;
+                _calculatorModel.WaitingForOperand = true;
+                HasDecimalPoint = false;
             }
-            finally
-            {               
-                IsCalculating = false; // Всегда скрываем индикатор загрузки
+            else if (LastResult != 0)
+            {
+                CurrentExpression = $"{LastResult} {mathOperator} ";
+                IsNewCalculation = false;
+                _calculatorModel.LastOperation = mathOperator;
+                _calculatorModel.WaitingForOperand = true;
             }
         }
 
-        private void OnClear() // Очистка дисплея
+        /// <summary>
+        /// Обработка ввода десятичной точки
+        /// </summary>
+        public void InputDecimal()
         {
-            DisplayText = "0";
-            HistoryText = "";
-            _justCalculated = false;
-            _waitingForOperand = false;
-            ClearError();
-        }
-        
-        private void OnBackspace() // Удаление последнего символа
-        {
-            // Если только что вычисляли, Backspace работает как Clear
-            if (_justCalculated)
-            {
-                OnClear();
+            if (HasDecimalPoint)
                 return;
-            }
 
-            // Удаляем последний символ
-            if (DisplayText.Length > 1)
+            if (IsNewCalculation)
             {
-                DisplayText = DisplayText[..^1];
+                DisplayValue = "0.";
+                CurrentExpression = "0.";
+                IsNewCalculation = false;
             }
             else
             {
-                DisplayText = "0";
+                DisplayValue += ".";
+                CurrentExpression += ".";
             }
 
-            ClearError();
+            HasDecimalPoint = true;
         }
 
-        private void OnDecimalPressed() // Ввод десятичной точки
-        {
-            // Если только что вычисляли, начинаем новое число
-            if (_justCalculated)
-            {
-                DisplayText = "0.";
-                _justCalculated = false;
-                return;
-            }
-
-            // Если ждем операнд, начинаем новое десятичное число
-            if (_waitingForOperand)
-            {
-                DisplayText += "0.";
-                _waitingForOperand = false;
-                return;
-            }
-
-            // Проверяем, нет ли уже десятичной точки в текущем числе
-            string[] parts = DisplayText.Split(' ');
-            string lastPart = parts[^1];
-
-            if (!lastPart.Contains('.'))
-            {
-                DisplayText += ".";
-            }
-
-            ClearError();
-        }
-       
-        private void OnScientificFunction(string function) // Обработчик научных функций
-        {
-            // Добавляем функцию с открывающей скобкой
-            if (_justCalculated || DisplayText == "0")
-            {
-                DisplayText = $"{function}(";
-            }
-            else
-            {
-                DisplayText += $"{function}(";
-            }
-
-            _justCalculated = false;
-            _waitingForOperand = false;
-            ClearError();
-        }
-
-        private void OnConstantPressed(string constant)  // Обработчик констант (π, e)
-        {
-            if (_justCalculated || DisplayText == "0" || _waitingForOperand)
-            {
-                DisplayText = constant;
-                _waitingForOperand = false;
-            }
-            else
-            {
-                DisplayText += constant;
-            }
-
-            _justCalculated = false;
-            ClearError();
-        }
-      
-        private void OnToggleHistory() // Переключение отображения истории
-        {
-            ShowHistory = !ShowHistory;
-        }
-      
-        private void OnClearHistory() // Очистка истории
-        {
-            _history.Clear();
-            HistoryItems.Clear();
-            RecentResults.Clear();
-        }
-      
-        private void OnToggleAngleMode() // Переключение режима углов (градусы/радианы)
-        {
-            AngleMode = AngleMode == AngleMode.Degrees ? AngleMode.Radians : AngleMode.Degrees;
-
-            // Сохраняем настройку
-            if (_settings != null)
-            {
-                _settings.AngleMode = AngleMode;
-                SaveSettingsAsync();
-            }
-        }
-      
-        private async void OnCopyResult() // Копирование результата в буфер обмена
+        /// <summary>
+        /// Выполнение вычисления
+        /// </summary>
+        /// <returns>Результат вычисления или сообщение об ошибке</returns>
+        public CalculationResult Calculate()
         {
             try
             {
-                // Используем встроенный API .NET MAUI для работы с буфером обмена
-                await Microsoft.Maui.ApplicationModel.DataTransfer.Clipboard.SetTextAsync(DisplayText);
+                if (string.IsNullOrWhiteSpace(CurrentExpression) || CurrentExpression == "0")
+                    return new CalculationResult { IsSuccess = false, ErrorMessage = "Нет выражения для вычисления" };
 
-                // Можно показать всплывающее уведомление
-                await Shell.Current.DisplayAlert("Скопировано", "Результат скопирован в буфер обмена", "OK");
-            }
-            catch (Exception ex)
-            {
-                ShowError($"Ошибка копирования: {ex.Message}");
-            }
-        }
+                if (!_calculatorService.IsValidExpression(CurrentExpression))
+                    return new CalculationResult { IsSuccess = false, ErrorMessage = "Некорректное выражение" };
 
-        // Вставка результата из истории
-        private void OnInsertFromHistory(CalculationResult? result)
-        {
-            if (result == null) return;
+                double result = _calculatorService.Calculate(CurrentExpression);
+                string formattedResult = _calculatorService.FormatResult(result);
 
-            DisplayText = result.FormattedResult;
-            _justCalculated = true;
-            _waitingForOperand = false;
-            ClearError();
-        }
+                // Добавляем в историю
+                string historyEntry = $"{CurrentExpression} = {formattedResult}";
+                _calculatorModel.AddToHistory(historyEntry);
 
-        private void AddToHistory(CalculationResult result) // Добавление результата в историю
-        {           
-            _history.AddCalculation(result); // Добавляем в модель истории
-           
-            HistoryItems.Insert(0, result); // Обновляем коллекции для UI
+                // Обновляем состояние
+                LastResult = result;
+                DisplayValue = formattedResult;
+                IsNewCalculation = true;
+                HasDecimalPoint = formattedResult.Contains(".");
+                _calculatorModel.WaitingForOperand = false;
 
-            // Ограничиваем количество элементов в UI коллекции для производительности
-            while (HistoryItems.Count > 50)
-            {
-                HistoryItems.RemoveAt(HistoryItems.Count - 1);
-            }
-          
-            UpdateRecentResults(); // Обновляем последние результаты
-        }
-
-        private void UpdateRecentResults() // Обновление коллекции последних результатов
-        {
-            RecentResults.Clear();
-            var recent = _history.GetSuccessful(10);
-
-            foreach (var result in recent)
-            {
-                RecentResults.Add(result);
-            }
-        }
-     
-        private void ShowError(string message) // Показ ошибки пользователю
-        {
-            ErrorMessage = message;
-            HasError = true;
-        
-            Task.Delay(5000).ContinueWith(_ => ClearError()); // Автоматически скрываем ошибку через 5 секунд
-        }
-      
-        private void ClearError() // Очистка ошибки
-        {
-            ErrorMessage = "";
-            HasError = false;
-        }
-       
-        private async void LoadSettingsAsync() // Асинхронная загрузка настроек
-        {
-            try
-            {
-                _settings = await _integrationService.GetCalculatorSettingsAsync();
-                AngleMode = _settings.AngleMode;
-                ShowScientificFunctions = true; // Всегда показываем в полном режиме
-            }
-            catch (Exception ex)
-            {
-                // Используем настройки по умолчанию при ошибке
-                _settings = new CalculatorSettings();
-                ShowError($"Ошибка загрузки настроек: {ex.Message}");
-            }
-        }
-       
-        private async void SaveSettingsAsync() // Асинхронное сохранение настроек
-        {
-            try
-            {
-                if (_settings != null)
+                return new CalculationResult
                 {
-                    await _integrationService.SaveCalculatorSettingsAsync(_settings);
-                }
+                    IsSuccess = true,
+                    Result = result,
+                    FormattedResult = formattedResult
+                };
             }
             catch (Exception ex)
             {
-                ShowError($"Ошибка сохранения настроек: {ex.Message}");
+                return new CalculationResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
             }
         }
-     
-        private void OnCalculationCompleted(object? sender, CalculationCompletedEventArgs e) { } // Обработчик события завершения вычисления от сервиса интеграции
 
-        public void InsertText(string text) // Метод для вставки текста извне (например, из заметок)
+        /// <summary>
+        /// Вычисление квадратного корня
+        /// </summary>
+        /// <returns>Результат вычисления или сообщение об ошибке</returns>
+        public CalculationResult CalculateSquareRoot()
         {
-            if (string.IsNullOrEmpty(text)) return;
-
-            if (_justCalculated || DisplayText == "0")
+            try
             {
-                DisplayText = text;
-            }
-            else
-            {
-                DisplayText += text;
-            }
+                if (!double.TryParse(DisplayValue, out double value))
+                    return new CalculationResult { IsSuccess = false, ErrorMessage = "Некорректное число" };
 
-            _justCalculated = false;
-            _waitingForOperand = false;
-            ClearError();
+                double result = _calculatorService.CalculateSquareRoot(value);
+                string formattedResult = _calculatorService.FormatResult(result);
+
+                // Добавляем в историю
+                string historyEntry = $"√{value} = {formattedResult}";
+                _calculatorModel.AddToHistory(historyEntry);
+
+                // Обновляем состояние
+                LastResult = result;
+                DisplayValue = formattedResult;
+                CurrentExpression = formattedResult;
+                IsNewCalculation = true;
+                HasDecimalPoint = formattedResult.Contains(".");
+
+                return new CalculationResult
+                {
+                    IsSuccess = true,
+                    Result = result,
+                    FormattedResult = formattedResult
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CalculationResult
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
         }
-       
-        public string GetCurrentResult() // Метод для получения текущего результата
+
+        /// <summary>
+        /// Полная очистка калькулятора
+        /// </summary>
+        public void Clear()
         {
-            return DisplayText;
+            _calculatorModel.Reset();
+            OnPropertyChanged(nameof(DisplayValue));
+            OnPropertyChanged(nameof(CurrentExpression));
+            OnPropertyChanged(nameof(LastResult));
+            OnPropertyChanged(nameof(IsNewCalculation));
+            OnPropertyChanged(nameof(HasDecimalPoint));
         }
-    
-        public async Task SetModeAsync(CalculatorMode mode) // Метод для установки режима калькулятора
+
+        /// <summary>
+        /// Очистка последнего ввода
+        /// </summary>
+        public void ClearEntry()
         {
-            CurrentMode = mode;
-            await _integrationService.SetModeAsync(mode);
-           
-            ShowScientificFunctions = mode == CalculatorMode.FullScreen; // Настраиваем отображение в зависимости от режима
+            DisplayValue = "0";
+            HasDecimalPoint = false;
+
+            // Если мы в середине выражения, удаляем последний операнд
+            if (!IsNewCalculation && _calculatorModel.WaitingForOperand)
+            {
+                int lastOperatorIndex = Math.Max(
+                    Math.Max(CurrentExpression.LastIndexOf('+'),
+                            CurrentExpression.LastIndexOf('-')),
+                    Math.Max(CurrentExpression.LastIndexOf('*'),
+                            CurrentExpression.LastIndexOf('/'))
+                );
+
+                if (lastOperatorIndex > 0)
+                {
+                    CurrentExpression = CurrentExpression.Substring(0, lastOperatorIndex + 2);
+                }
+            }
         }
-        
-        public void Dispose() // Метод для отписки от событий при уничтожении ViewModel
+
+        /// <summary>
+        /// Получить историю вычислений
+        /// </summary>
+        /// <returns>Список строк с историей</returns>
+        public List<string> GetHistory()
         {
-            _integrationService.CalculationCompleted -= OnCalculationCompleted;
+            return new List<string>(History);
         }
+
+        /// <summary>
+        /// Очистить историю вычислений
+        /// </summary>
+        public void ClearHistory()
+        {
+            History.Clear();
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private string ConvertOperatorSymbol(string displaySymbol)
+        {
+            return displaySymbol switch
+            {
+                "÷" => "/",
+                "×" => "*",
+                "−" => "-",
+                "+" => "+",
+                "%" => "%",
+                _ => displaySymbol
+            };
+        }
+
+        #endregion
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Результат вычисления
+    /// </summary>
+    public class CalculationResult
+    {
+        public bool IsSuccess { get; set; }
+        public double Result { get; set; }
+        public string FormattedResult { get; set; }
+        public string ErrorMessage { get; set; }
     }
 }
-

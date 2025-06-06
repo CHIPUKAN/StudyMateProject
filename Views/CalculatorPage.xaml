@@ -1,219 +1,200 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage x:Class="StudyMateProject.Views.CalculatorPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:components="clr-namespace:StudyMateProject.Components"
-             xmlns:viewmodels="clr-namespace:StudyMateProject.ViewModels"
-             x:Class="StudyMateProject.Views.CalculatorPage"
-             x:DataType="viewmodels:CalculatorViewModel"
-             Title="Калькулятор"
-             Shell.NavBarIsVisible="True">
+             Title="Калькулятор">
 
-    <!-- Полноэкранная страница калькулятора -->
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid Padding="10" RowSpacing="5" ColumnSpacing="5">
+        <!-- Определяем строки -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <!-- Дисплей -->
+            <RowDefinition Height="*"/>
+            <!-- Строка 1: C, CE, %, / -->
+            <RowDefinition Height="*"/>
+            <!-- Строка 2: 7, 8, 9, * -->
+            <RowDefinition Height="*"/>
+            <!-- Строка 3: 4, 5, 6, - -->
+            <RowDefinition Height="*"/>
+            <!-- Строка 4: 1, 2, 3, + -->
+            <RowDefinition Height="*"/>
+            <!-- Строка 5: 0, ., √, = -->
+        </Grid.RowDefinitions>
 
-        <!-- Верхняя панель с переключателями режимов -->
-        <Border Grid.Row="0" 
-                BackgroundColor="{DynamicResource CalculatorHeaderBackgroundColor}"
-                Padding="16,8">
+        <!-- Определяем колонки -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-            <Grid ColumnDefinitions="*,Auto,Auto">
-
-                <!-- Переключатель вкладок калькулятора -->
-                <ScrollView Grid.Column="0" Orientation="Horizontal">
-                    <StackLayout Orientation="Horizontal" Spacing="8">
-
-                        <Button Text="Обычный" 
-                                BackgroundColor="{StaticResource Primary}"
-                                TextColor="{StaticResource White}"
-                                HeightRequest="36"
-                                FontSize="14"/>
-
-                        <Button Text="Научный" 
-                                BackgroundColor="{StaticResource Secondary}"
-                                TextColor="{StaticResource White}"
-                                HeightRequest="36"
-                                FontSize="14"/>
-
-                        <Button Text="Матрицы" 
-                                BackgroundColor="{StaticResource Secondary}"
-                                TextColor="{StaticResource White}"
-                                HeightRequest="36"
-                                FontSize="14"/>
-
-                        <Button Text="Продвинутый" 
-                                BackgroundColor="{StaticResource Secondary}"
-                                TextColor="{StaticResource White}"
-                                HeightRequest="36"
-                                FontSize="14"/>
-
-                    </StackLayout>
-                </ScrollView>
-
-                <!-- Кнопка настроек -->
-                <Button Grid.Column="1"
-                        Text="⚙️"
-                        BackgroundColor="{StaticResource Secondary}"
-                        TextColor="{StaticResource White}"
-                        HeightRequest="36"
-                        WidthRequest="36"
-                        FontSize="16"
-                        Margin="8,0"/>
-
-                <!-- Кнопка истории -->
-                <Button Grid.Column="2"
-                        Text="📚"
-                        Command="{Binding ToggleHistoryCommand}"
-                        BackgroundColor="{StaticResource Info}"
-                        TextColor="{StaticResource White}"
-                        HeightRequest="36"
-                        WidthRequest="36"
-                        FontSize="16"/>
-
-            </Grid>
+        <!-- Дисплей -->
+        <Border Grid.Row="0" Grid.ColumnSpan="4" 
+                BackgroundColor="Black" 
+                Stroke="Gray" 
+                StrokeThickness="2">
+            <StackLayout Padding="15" VerticalOptions="End">
+                <!-- Показываем выражение -->
+                <Label x:Name="ExpressionLabel" 
+                       Text="0" 
+                       TextColor="LightGray" 
+                       FontSize="16" 
+                       HorizontalOptions="End"/>
+                <!-- Показываем результат -->
+                <Label x:Name="DisplayLabel" 
+                       Text="0" 
+                       TextColor="White" 
+                       FontSize="32" 
+                       FontAttributes="Bold"
+                       HorizontalOptions="End"/>
+            </StackLayout>
         </Border>
 
-        <!-- Основной контент с калькулятором -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+        <!-- Первая строка кнопок: C, CE, %, / -->
+        <Button Grid.Row="1" Grid.Column="0" 
+                Text="C" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnClearClicked"/>
 
-            <!-- Основной калькулятор -->
-            <components:CalculatorComponent Grid.Column="0"
-                                          BindingContext="{Binding}"
-                                          IsMiniMode="False"
-                                          FontSize="32"/>
+        <Button Grid.Row="1" Grid.Column="1" 
+                Text="CE" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnClearEntryClicked"/>
 
-            <!-- Боковая панель истории -->
-            <Border Grid.Column="1"
-                    IsVisible="{Binding ShowHistory}"
-                    BackgroundColor="{DynamicResource CalculatorHistoryBackgroundColor}"
-                    Stroke="{DynamicResource CalculatorHistoryBorderColor}"
-                    StrokeThickness="1"
-                    WidthRequest="300"
-                    Margin="8,0,0,0">
+        <Button Grid.Row="1" Grid.Column="2" 
+                Text="%" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnOperatorClicked"/>
 
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12"/>
-                </Border.StrokeShape>
+        <Button Grid.Row="1" Grid.Column="3" 
+                Text="÷" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnOperatorClicked"/>
 
-                <Grid RowDefinitions="Auto,*,Auto" Padding="12">
+        <!-- Вторая строка кнопок: 7, 8, 9, * -->
+        <Button Grid.Row="2" Grid.Column="0" 
+                Text="7" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                    <!-- Заголовок истории -->
-                    <Label Grid.Row="0"
-                           Text="История вычислений"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           TextColor="{DynamicResource CalculatorHistoryTitleColor}"
-                           Margin="0,0,0,8"/>
+        <Button Grid.Row="2" Grid.Column="1" 
+                Text="8" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                    <!-- Список истории -->
-                    <CollectionView Grid.Row="1"
-                                   ItemsSource="{Binding HistoryItems}"
-                                   SelectionMode="Single"
-                                   >
+        <Button Grid.Row="2" Grid.Column="2" 
+                Text="9" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid RowDefinitions="Auto,Auto" 
-                                      Padding="8,4"
-                                      BackgroundColor="Transparent">
+        <Button Grid.Row="2" Grid.Column="3" 
+                Text="×" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnOperatorClicked"/>
 
-                                    <!-- Время -->
-                                    <Label Grid.Row="0"
-                                           
-                                           FontSize="10"
-                                           TextColor="{DynamicResource CalculatorHistoryTimeColor}"/>
+        <!-- Третья строка кнопок: 4, 5, 6, - -->
+        <Button Grid.Row="3" Grid.Column="0" 
+                Text="4" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                                    <!-- Выражение и результат -->
-                                    <Label Grid.Row="1"
-                                           FontSize="12"
-                                           TextColor="{DynamicResource CalculatorHistoryTextColor}">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                
-                                                      
-                                                <Span Text=" = "/>
-                                                
-                                            </FormattedString>
-                                        </Label.FormattedText>
-                                    </Label>
+        <Button Grid.Row="3" Grid.Column="1" 
+                Text="5" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                                    <!-- Жест для повторного использования -->
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CalculatorViewModel}}, Path=InsertFromHistoryCommand}"
-                                                             CommandParameter="{Binding}"/>
-                                    </Grid.GestureRecognizers>
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+        <Button Grid.Row="3" Grid.Column="2" 
+                Text="6" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                    <!-- Кнопки управления историей -->
-                    <StackLayout Grid.Row="2" 
-                                Orientation="Horizontal" 
-                                HorizontalOptions="Center"
-                                Spacing="8"
-                                Margin="0,8,0,0">
+        <Button Grid.Row="3" Grid.Column="3" 
+                Text="−" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnOperatorClicked"/>
 
-                        <Button Text="Очистить"
-                                Command="{Binding ClearHistoryCommand}"
-                                BackgroundColor="{StaticResource Warning}"
-                                TextColor="{StaticResource White}"
-                                HeightRequest="32"
-                                FontSize="12"/>
+        <!-- Четвертая строка кнопок: 1, 2, 3, + -->
+        <Button Grid.Row="4" Grid.Column="0" 
+                Text="1" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                        <Button Text="Экспорт"
-                                BackgroundColor="{StaticResource Info}"
-                                TextColor="{StaticResource White}"
-                                HeightRequest="32"
-                                FontSize="12"/>
+        <Button Grid.Row="4" Grid.Column="1" 
+                Text="2" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                    </StackLayout>
+        <Button Grid.Row="4" Grid.Column="2" 
+                Text="3" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-                </Grid>
-            </Border>
+        <Button Grid.Row="4" Grid.Column="3" 
+                Text="+" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnOperatorClicked"/>
 
-        </Grid>
+        <!-- Пятая строка кнопок: 0, ., √, = -->
+        <Button Grid.Row="5" Grid.Column="0" 
+                Text="0" 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnNumberClicked"/>
 
-        <!-- Нижняя панель с дополнительной информацией -->
-        <Border Grid.Row="2"
-                BackgroundColor="{DynamicResource CalculatorFooterBackgroundColor}"
-                Padding="16,8"
-                >
+        <Button Grid.Row="5" Grid.Column="1" 
+                Text="." 
+                BackgroundColor="DarkGray" 
+                TextColor="White"
+                FontSize="24"
+                Clicked="OnDecimalClicked"/>
 
-            <Grid ColumnDefinitions="*,Auto,Auto">
+        <Button Grid.Row="5" Grid.Column="2" 
+                Text="√" 
+                BackgroundColor="Orange" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnSquareRootClicked"/>
 
-                <!-- Режим углов -->
-                <Label Grid.Column="0"
-                       Text="{Binding AngleMode, StringFormat='Режим: {0}'}"
-                       FontSize="12"
-                       TextColor="{DynamicResource CalculatorFooterTextColor}"
-                       VerticalOptions="Center"/>
-
-                <!-- Индикатор вычислений -->
-                <StackLayout Grid.Column="1" 
-                            Orientation="Horizontal" 
-                            Spacing="4"
-                            IsVisible="{Binding IsCalculating}">
-                    <ActivityIndicator IsRunning="{Binding IsCalculating}"
-                                      Color="{DynamicResource Primary}"
-                                      HeightRequest="16"/>
-                    <Label Text="Вычисляется..."
-                           FontSize="12"
-                           TextColor="{DynamicResource CalculatorFooterTextColor}"
-                           VerticalOptions="Center"/>
-                </StackLayout>
-
-                <!-- Кнопка копирования результата -->
-                <Button Grid.Column="2"
-                        Text="📋"
-                        Command="{Binding CopyResultCommand}"
-                        BackgroundColor="{StaticResource Info}"
-                        TextColor="{StaticResource White}"
-                        HeightRequest="32"
-                        WidthRequest="32"
-                        FontSize="16"/>
-
-            </Grid>
-        </Border>
+        <Button Grid.Row="5" Grid.Column="3" 
+                Text="=" 
+                BackgroundColor="DodgerBlue" 
+                TextColor="White"
+                FontSize="20"
+                Clicked="OnEqualsClicked"/>
 
     </Grid>
 </ContentPage>

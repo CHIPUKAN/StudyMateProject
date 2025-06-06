@@ -1,335 +1,223 @@
-using StudyMateProject.ViewModels;
+п»їusing Microsoft.Maui.Controls;
+using System;
+using StudyMateProject.Models;
 using StudyMateProject.Services;
 
-namespace StudyMateProject.Views;
-
-public partial class CalculatorPage : ContentPage
+namespace StudyMateProject.Views
 {
-    #region Private Fields
-
-    private readonly CalculatorViewModel _viewModel;
-
-    #endregion
-
-    public CalculatorPage(CalculatorViewModel viewModel)
+    public partial class CalculatorPage : ContentPage
     {
-        InitializeComponent();
+        private readonly ICalculatorService _calculatorService;
+        private readonly CalculatorModel _calculatorModel;
 
-        _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
-        BindingContext = _viewModel;
-
-        // Инициализация страницы
-        InitializePage();
-    }
-
-    #region Initialization
-
-    private void InitializePage()
-    {
-        // Устанавливаем режим полноэкранного калькулятора
-        _viewModel.SetModeAsync(CalculatorMode.FullScreen);
-
-        // Подписываемся на события ViewModel
-        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-
-        // Настраиваем внешний вид страницы
-        SetupPageAppearance();
-
-        // Настраиваем адаптивность
-        SetupResponsiveLayout();
-    }
-
-    private void SetupPageAppearance()
-    {
-        // Настройка цветов в зависимости от темы
-        if (Application.Current?.RequestedTheme == AppTheme.Dark)
+        public CalculatorPage()
         {
-            Shell.SetBackgroundColor(this, Colors.Black);
-        }
-        else
-        {
-            Shell.SetBackgroundColor(this, Colors.White);
+            InitializeComponent();
+            _calculatorService = new CalculatorService();
+            _calculatorModel = new CalculatorModel();
+
+            UpdateDisplay();
         }
 
-        // Скрываем навигационную панель по умолчанию, если нужно
-        Shell.SetNavBarIsVisible(this, true);
-        Shell.SetTabBarIsVisible(this, true);
-    }
-
-    private void SetupResponsiveLayout()
-    {
-        // Подписываемся на изменения размера для адаптивности
-        SizeChanged += OnPageSizeChanged;
-    }
-
-    #endregion
-
-    #region Event Handlers
-
-    // Обработчик изменений в ViewModel
-    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        switch (e.PropertyName)
+        private void OnNumberClicked(object sender, EventArgs e)
         {
-            case nameof(_viewModel.HasError):
-                HandleErrorStateChanged();
-                break;
+            Button button = (Button)sender;
+            string number = button.Text;
 
-            case nameof(_viewModel.ShowHistory):
-                HandleHistoryVisibilityChanged();
-                break;
-
-            case nameof(_viewModel.IsCalculating):
-                HandleCalculatingStateChanged();
-                break;
-        }
-    }
-
-    // Обработчик изменения размера страницы
-    private void OnPageSizeChanged(object? sender, EventArgs e)
-    {
-        AdaptToScreenSize();
-    }
-
-    // Обработка состояния ошибки
-    private void HandleErrorStateChanged()
-    {
-        if (_viewModel.HasError)
-        {
-            // Можно добавить визуальные эффекты для ошибки
-            // Например, вибрацию или изменение цвета
-            TriggerErrorFeedback();
-        }
-    }
-
-    // Обработка изменения видимости истории
-    private void HandleHistoryVisibilityChanged()
-    {
-        // Анимация появления/скрытия панели истории
-        if (_viewModel.ShowHistory)
-        {
-            AnimateHistoryPanelIn();
-        }
-        else
-        {
-            AnimateHistoryPanelOut();
-        }
-    }
-
-    // Обработка состояния вычисления
-    private void HandleCalculatingStateChanged()
-    {
-        // Можно добавить дополнительные визуальные эффекты
-        if (_viewModel.IsCalculating)
-        {
-            // Отключаем некоторые взаимодействия во время вычисления
-            IsEnabled = true; // Оставляем доступным для отмены
-        }
-        else
-        {
-            // Восстанавливаем полную интерактивность
-            IsEnabled = true;
-        }
-    }
-
-    #endregion
-
-    #region Animation Methods
-
-    // Анимация появления панели истории
-    private async void AnimateHistoryPanelIn()
-    {
-        var historyPanel = this.FindByName("HistoryPanel") as Border;
-        if (historyPanel != null)
-        {
-            historyPanel.TranslationX = 300;
-            historyPanel.Opacity = 0;
-
-            await Task.WhenAll(
-                historyPanel.TranslateTo(0, 0, 250, Easing.CubicOut),
-                historyPanel.FadeTo(1, 250)
-            );
-        }
-    }
-
-    // Анимация скрытия панели истории
-    private async void AnimateHistoryPanelOut()
-    {
-        var historyPanel = this.FindByName("HistoryPanel") as Border;
-        if (historyPanel != null)
-        {
-            await Task.WhenAll(
-                historyPanel.TranslateTo(300, 0, 200, Easing.CubicIn),
-                historyPanel.FadeTo(0, 200)
-            );
-        }
-    }
-
-    #endregion
-
-    #region Responsive Layout
-
-    // Адаптация к размеру экрана
-    private void AdaptToScreenSize()
-    {
-        var width = Width;
-        var height = Height;
-
-        if (width <= 0 || height <= 0) return;
-
-        // Адаптация для разных размеров экрана
-        if (width < 600) // Мобильные устройства
-        {
-            AdaptForMobileLayout();
-        }
-        else if (width < 1200) // Планшеты
-        {
-            AdaptForTabletLayout();
-        }
-        else // Десктоп
-        {
-            AdaptForDesktopLayout();
-        }
-
-        // Адаптация в зависимости от ориентации
-        if (width > height) // Альбомная ориентация
-        {
-            AdaptForLandscapeLayout();
-        }
-        else // Портретная ориентация
-        {
-            AdaptForPortraitLayout();
-        }
-    }
-
-    private void AdaptForMobileLayout()
-    {
-        // Настройки для мобильных устройств
-        // Скрываем историю по умолчанию на мобильных
-        if (_viewModel.ShowHistory && Width < 400)
-        {
-            _viewModel.ShowHistory = false;
-        }
-    }
-
-    private void AdaptForTabletLayout()
-    {
-        // Настройки для планшетов
-        // Можно показывать историю сбоку
-    }
-
-    private void AdaptForDesktopLayout()
-    {
-        // Настройки для десктопа
-        // Показываем все элементы управления
-    }
-
-    private void AdaptForLandscapeLayout()
-    {
-        // Альбомная ориентация - больше места по горизонтали
-        // Можем показать историю сбоку
-    }
-
-    private void AdaptForPortraitLayout()
-    {
-        // Портретная ориентация - экономим горизонтальное место
-    }
-
-    #endregion
-
-    #region Feedback Methods
-
-    // Тактильная обратная связь при ошибке
-    private void TriggerErrorFeedback()
-    {
-        try
-        {
-            
-        }
-        catch
-        {
-            // Игнорируем ошибки обратной связи
-        }
-    }
-
-    #endregion
-
-    #region Public Methods
-
-    // Программная установка режима калькулятора
-    public async Task SetCalculatorModeAsync(CalculatorMode mode)
-    {
-        await _viewModel.SetModeAsync(mode);
-    }
-
-    // Вставка текста в калькулятор (для интеграции с другими частями приложения)
-    public void InsertText(string text)
-    {
-        _viewModel.InsertText(text);
-    }
-
-    // Получение текущего результата
-    public string GetCurrentResult()
-    {
-        return _viewModel.GetCurrentResult();
-    }
-
-    #endregion
-
-    #region Page Lifecycle
-
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
-
-        // Обновляем размеры при появлении страницы
-        AdaptToScreenSize();
-
-        // Устанавливаем фокус на калькулятор
-        Focus();
-    }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-
-        // Сохраняем состояние при скрытии страницы
-        // Можно сохранить историю или настройки
-    }
-
-    protected override bool OnBackButtonPressed()
-    {
-        // Обрабатываем кнопку "назад"
-        if (_viewModel.ShowHistory)
-        {
-            // Сначала скрываем историю
-            _viewModel.ShowHistory = false;
-            return true; // Предотвращаем закрытие страницы
-        }
-
-        return base.OnBackButtonPressed();
-    }
-
-    #endregion
-
-    #region Cleanup
-
-    protected override void OnParentSet()
-    {
-        base.OnParentSet();
-
-        // Очистка при удалении страницы
-        if (Parent == null)
-        {
-            SizeChanged -= OnPageSizeChanged;
-
-            if (_viewModel != null)
+            if (_calculatorModel.IsNewCalculation)
             {
-                _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-                _viewModel.Dispose();
+                _calculatorModel.DisplayValue = number == "0" ? "0" : number;
+                _calculatorModel.CurrentExpression = number;
+                _calculatorModel.IsNewCalculation = false;
+            }
+            else
+            {
+                if (_calculatorModel.DisplayValue == "0")
+                {
+                    _calculatorModel.DisplayValue = number;
+                    _calculatorModel.CurrentExpression = number;
+                }
+                else
+                {
+                    _calculatorModel.DisplayValue += number;
+                    _calculatorModel.CurrentExpression += number;
+                }
+            }
+
+            UpdateDisplay();
+        }
+
+        private void OnOperatorClicked(object sender, EventArgs e)
+        {
+            Button button = (Button)sender;
+            string operatorSymbol = button.Text;
+
+            // РљРѕРЅРІРµСЂС‚РёСЂСѓРµРј РѕС‚РѕР±СЂР°Р¶Р°РµРјС‹Рµ СЃРёРјРІРѕР»С‹ РІ РјР°С‚РµРјР°С‚РёС‡РµСЃРєРёРµ
+            string mathOperator = operatorSymbol switch
+            {
+                "Г·" => "/",
+                "Г—" => "*",
+                "в€’" => "-",
+                "+" => "+",
+                "%" => "%",
+                _ => operatorSymbol
+            };
+
+            if (!_calculatorModel.IsNewCalculation)
+            {
+                // Р•СЃР»Рё СѓР¶Рµ РµСЃС‚СЊ РІС‹СЂР°Р¶РµРЅРёРµ, РґРѕР±Р°РІР»СЏРµРј РѕРїРµСЂР°С‚РѕСЂ
+                _calculatorModel.CurrentExpression += $" {mathOperator} ";
+                _calculatorModel.LastOperation = mathOperator;
+                _calculatorModel.WaitingForOperand = true;
+                _calculatorModel.HasDecimalPoint = false;
+            }
+            else if (_calculatorModel.LastResult != 0)
+            {
+                // Р•СЃР»Рё РЅР°С‡РёРЅР°РµРј РЅРѕРІРѕРµ РІС‹С‡РёСЃР»РµРЅРёРµ СЃ РїСЂРµРґС‹РґСѓС‰РёРј СЂРµР·СѓР»СЊС‚Р°С‚РѕРј
+                _calculatorModel.CurrentExpression = $"{_calculatorModel.LastResult} {mathOperator} ";
+                _calculatorModel.IsNewCalculation = false;
+                _calculatorModel.LastOperation = mathOperator;
+                _calculatorModel.WaitingForOperand = true;
+            }
+
+            UpdateDisplay();
+        }
+
+        private void OnDecimalClicked(object sender, EventArgs e)
+        {
+            if (_calculatorModel.HasDecimalPoint)
+                return;
+
+            if (_calculatorModel.IsNewCalculation)
+            {
+                _calculatorModel.DisplayValue = "0.";
+                _calculatorModel.CurrentExpression = "0.";
+                _calculatorModel.IsNewCalculation = false;
+            }
+            else
+            {
+                _calculatorModel.DisplayValue += ".";
+                _calculatorModel.CurrentExpression += ".";
+            }
+
+            _calculatorModel.HasDecimalPoint = true;
+            UpdateDisplay();
+        }
+
+        private void OnEqualsClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_calculatorModel.CurrentExpression) ||
+                    _calculatorModel.CurrentExpression == "0")
+                    return;
+
+                // РџСЂРѕРІРµСЂСЏРµРј РєРѕСЂСЂРµРєС‚РЅРѕСЃС‚СЊ РІС‹СЂР°Р¶РµРЅРёСЏ
+                if (!_calculatorService.IsValidExpression(_calculatorModel.CurrentExpression))
+                {
+                    ShowError("РќРµРєРѕСЂСЂРµРєС‚РЅРѕРµ РІС‹СЂР°Р¶РµРЅРёРµ");
+                    return;
+                }
+
+                // Р’С‹С‡РёСЃР»СЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
+                double result = _calculatorService.Calculate(_calculatorModel.CurrentExpression);
+                string formattedResult = _calculatorService.FormatResult(result);
+
+                // Р”РѕР±Р°РІР»СЏРµРј РІ РёСЃС‚РѕСЂРёСЋ
+                string historyEntry = $"{_calculatorModel.CurrentExpression} = {formattedResult}";
+                _calculatorModel.AddToHistory(historyEntry);
+
+                // РћР±РЅРѕРІР»СЏРµРј СЃРѕСЃС‚РѕСЏРЅРёРµ
+                _calculatorModel.LastResult = result;
+                _calculatorModel.DisplayValue = formattedResult;
+                _calculatorModel.IsNewCalculation = true;
+                _calculatorModel.HasDecimalPoint = formattedResult.Contains(".");
+                _calculatorModel.WaitingForOperand = false;
+
+                UpdateDisplay();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"РћС€РёР±РєР°: {ex.Message}");
             }
         }
-    }
 
-    #endregion
+        private void OnSquareRootClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                // Р•СЃР»Рё РµСЃС‚СЊ С‚РµРєСѓС‰РµРµ Р·РЅР°С‡РµРЅРёРµ РґР»СЏ РёР·РІР»РµС‡РµРЅРёСЏ РєРѕСЂРЅСЏ
+                if (double.TryParse(_calculatorModel.DisplayValue, out double value))
+                {
+                    double result = _calculatorService.CalculateSquareRoot(value);
+                    string formattedResult = _calculatorService.FormatResult(result);
+
+                    // Р”РѕР±Р°РІР»СЏРµРј РІ РёСЃС‚РѕСЂРёСЋ
+                    string historyEntry = $"в€љ{value} = {formattedResult}";
+                    _calculatorModel.AddToHistory(historyEntry);
+
+                    // РћР±РЅРѕРІР»СЏРµРј СЃРѕСЃС‚РѕСЏРЅРёРµ
+                    _calculatorModel.LastResult = result;
+                    _calculatorModel.DisplayValue = formattedResult;
+                    _calculatorModel.CurrentExpression = formattedResult;
+                    _calculatorModel.IsNewCalculation = true;
+                    _calculatorModel.HasDecimalPoint = formattedResult.Contains(".");
+
+                    UpdateDisplay();
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowError($"РћС€РёР±РєР°: {ex.Message}");
+            }
+        }
+
+        private void OnClearClicked(object sender, EventArgs e)
+        {
+            // РџРѕР»РЅР°СЏ РѕС‡РёСЃС‚РєР° (C)
+            _calculatorModel.Reset();
+            UpdateDisplay();
+        }
+
+        private void OnClearEntryClicked(object sender, EventArgs e)
+        {
+            // РћС‡РёСЃС‚РєР° РїРѕСЃР»РµРґРЅРµРіРѕ РІРІРѕРґР° (CE)
+            _calculatorModel.DisplayValue = "0";
+            _calculatorModel.HasDecimalPoint = false;
+
+            // Р•СЃР»Рё РјС‹ РІ СЃРµСЂРµРґРёРЅРµ РІС‹СЂР°Р¶РµРЅРёСЏ, СѓРґР°Р»СЏРµРј РїРѕСЃР»РµРґРЅРёР№ РѕРїРµСЂР°РЅРґ
+            if (!_calculatorModel.IsNewCalculation && _calculatorModel.WaitingForOperand)
+            {
+                // РќР°С…РѕРґРёРј РїРѕСЃР»РµРґРЅРёР№ РѕРїРµСЂР°С‚РѕСЂ Рё РѕР±СЂРµР·Р°РµРј РІС‹СЂР°Р¶РµРЅРёРµ
+                int lastOperatorIndex = Math.Max(
+                    Math.Max(_calculatorModel.CurrentExpression.LastIndexOf('+'),
+                            _calculatorModel.CurrentExpression.LastIndexOf('-')),
+                    Math.Max(_calculatorModel.CurrentExpression.LastIndexOf('*'),
+                            _calculatorModel.CurrentExpression.LastIndexOf('/'))
+                );
+
+                if (lastOperatorIndex > 0)
+                {
+                    _calculatorModel.CurrentExpression = _calculatorModel.CurrentExpression.Substring(0, lastOperatorIndex + 2);
+                }
+            }
+
+            UpdateDisplay();
+        }
+
+        private void UpdateDisplay()
+        {
+            DisplayLabel.Text = _calculatorModel.DisplayValue;
+            ExpressionLabel.Text = _calculatorModel.CurrentExpression;
+        }
+
+        private void ShowError(string message)
+        {
+            DisplayLabel.Text = "РћС€РёР±РєР°";
+            ExpressionLabel.Text = message;
+
+            // РЎР±СЂРѕСЃ СЃРѕСЃС‚РѕСЏРЅРёСЏ РїРѕСЃР»Рµ РѕС€РёР±РєРё
+            _calculatorModel.Reset();
+        }
+    }
 }
