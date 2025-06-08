@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197
+VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudyMateProject", "StudyMateProject.csproj", "{D35BC0ED-C481-4E64-AAA5-3628E4F57825}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudyMateProject", "StudyMateProject.csproj", "{61EB8352-4A0D-4B83-A3E0-39E1CD1B4A7C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,17 +11,17 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D35BC0ED-C481-4E64-AAA5-3628E4F57825}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D35BC0ED-C481-4E64-AAA5-3628E4F57825}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D35BC0ED-C481-4E64-AAA5-3628E4F57825}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{D35BC0ED-C481-4E64-AAA5-3628E4F57825}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D35BC0ED-C481-4E64-AAA5-3628E4F57825}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D35BC0ED-C481-4E64-AAA5-3628E4F57825}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{61EB8352-4A0D-4B83-A3E0-39E1CD1B4A7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61EB8352-4A0D-4B83-A3E0-39E1CD1B4A7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61EB8352-4A0D-4B83-A3E0-39E1CD1B4A7C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{61EB8352-4A0D-4B83-A3E0-39E1CD1B4A7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61EB8352-4A0D-4B83-A3E0-39E1CD1B4A7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61EB8352-4A0D-4B83-A3E0-39E1CD1B4A7C}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {15BA1685-276A-4382-8185-3A496616F0BB}
+		SolutionGuid = {88E2A0CE-F796-4C97-9BBD-DE7CFC3EFDD2}
 	EndGlobalSection
 EndGlobal

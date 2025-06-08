@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Data;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using MathNet.Numerics;
-using StudyMateProject.Services;
 
 namespace StudyMateProject.Services
 {
@@ -12,44 +11,34 @@ namespace StudyMateProject.Services
         {
             try
             {
-                // Заменяем символы для корректного парсинга
+                if (string.IsNullOrWhiteSpace(expression))
+                    return 0;
+
+                // Подготавливаем выражение
                 expression = PrepareExpression(expression);
 
-                // Простой парсер выражений (можно расширить)
-                var result = EvaluateExpression(expression);
+                // Обрабатываем функции
+                expression = ProcessSqrtFunction(expression);
+                expression = ProcessPowerOperations(expression);
 
-                // Проверяем результат на корректность
-                if (double.IsNaN(result) || double.IsInfinity(result))
-                {
-                    throw new InvalidOperationException("Некорректный результат вычисления");
-                }
+                // Используем DataTable для вычисления
+                var table = new DataTable();
+                var result = table.Compute(expression, null);
 
-                return result;
+                if (result == DBNull.Value)
+                    throw new InvalidOperationException("Невозможно вычислить выражение");
+
+                double calculatedResult = Convert.ToDouble(result);
+
+                if (double.IsNaN(calculatedResult) || double.IsInfinity(calculatedResult))
+                    throw new InvalidOperationException("Результат вычисления некорректен");
+
+                return calculatedResult;
             }
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Ошибка вычисления: {ex.Message}");
             }
-        }
-
-        public string FormatResult(double result)
-        {
-            // Если результат - целое число, показываем без десятичной части
-            if (result == Math.Floor(result) && result <= long.MaxValue && result >= long.MinValue)
-            {
-                return result.ToString("0", CultureInfo.InvariantCulture);
-            }
-
-            // Для дробных чисел ограничиваем количество знаков после запятой
-            string formatted = result.ToString("G15", CultureInfo.InvariantCulture);
-
-            // Если число очень большое или очень маленькое, используем научную нотацию
-            if (Math.Abs(result) >= 1e10 || (Math.Abs(result) <= 1e-6 && result != 0))
-            {
-                return result.ToString("E2", CultureInfo.InvariantCulture);
-            }
-
-            return formatted;
         }
 
         public bool IsValidExpression(string expression)
@@ -59,21 +48,33 @@ namespace StudyMateProject.Services
 
             try
             {
-                // Проверяем наличие недопустимых символов
-                var validPattern = @"^[0-9+\-*/().√^ \t]+$";
-                if (!Regex.IsMatch(expression, validPattern))
+                // Подготавливаем выражение
+                string prepared = PrepareExpression(expression);
+
+                // Проверяем балансировку скобок
+                int openParens = 0;
+                foreach (char c in prepared)
+                {
+                    if (c == '(') openParens++;
+                    if (c == ')') openParens--;
+                    if (openParens < 0) return false;
+                }
+                if (openParens != 0) return false;
+
+                // Проверяем на недопустимые символы
+                if (Regex.IsMatch(prepared, @"[^0-9+\-*/.() \^√qrts]"))
                     return false;
 
-                // Проверяем парность скобок
-                int openBrackets = 0;
-                foreach (char c in expression)
-                {
-                    if (c == '(') openBrackets++;
-                    if (c == ')') openBrackets--;
-                    if (openBrackets < 0) return false;
-                }
+                // Проверяем, что выражение не заканчивается оператором
+                string trimmed = prepared.Trim();
+                if (Regex.IsMatch(trimmed, @"[+\-*/.^]$"))
+                    return false;
 
-                return openBrackets == 0;
+                // Проверяем, что выражение не начинается с недопустимого оператора
+                if (Regex.IsMatch(trimmed, @"^[+*/.^]"))
+                    return false;
+
+                return true;
             }
             catch
             {
@@ -81,118 +82,218 @@ namespace StudyMateProject.Services
             }
         }
 
+        public string FormatResult(double result)
+        {
+            if (double.IsNaN(result))
+                return "NaN";
+            if (double.IsPositiveInfinity(result))
+                return "∞";
+            if (double.IsNegativeInfinity(result))
+                return "-∞";
+            if (result == 0)
+                return "0";
+
+            // Для очень маленьких чисел
+            if (Math.Abs(result) > 0 && Math.Abs(result) < 0.000001)
+                return result.ToString("E6", CultureInfo.InvariantCulture);
+
+            // Для очень больших чисел
+            if (Math.Abs(result) >= 1000000000000)
+                return result.ToString("E6", CultureInfo.InvariantCulture);
+
+            // Для целых чисел
+            if (result == Math.Floor(result) && Math.Abs(result) < 1000000000)
+                return result.ToString("F0", CultureInfo.InvariantCulture);
+
+            // Для обычных чисел с ограничением десятичных знаков
+            string formatted = result.ToString("F10", CultureInfo.InvariantCulture)
+                                    .TrimEnd('0')
+                                    .TrimEnd('.');
+
+            return string.IsNullOrEmpty(formatted) ? "0" : formatted;
+        }
+
         public double CalculateSquareRoot(double value)
         {
             if (value < 0)
-                throw new ArgumentException("Невозможно извлечь корень из отрицательного числа");
-
+                throw new ArgumentException("Нельзя извлечь квадратный корень из отрицательного числа");
             return Math.Sqrt(value);
         }
 
         public double CalculatePower(double baseValue, double exponent)
         {
-            return Math.Pow(baseValue, exponent);
+            var result = Math.Pow(baseValue, exponent);
+            if (double.IsNaN(result) || double.IsInfinity(result))
+                throw new InvalidOperationException("Результат возведения в степень некорректен");
+            return result;
         }
 
-        public double CalculatePercentage(double value, double percentage)
+        public double CalculateSin(double value, bool isRadianMode = true)
         {
-            return value * percentage / 100;
+            double radians = isRadianMode ? value : value * Math.PI / 180;
+            return Math.Sin(radians);
+        }
+
+        public double CalculateCos(double value, bool isRadianMode = true)
+        {
+            double radians = isRadianMode ? value : value * Math.PI / 180;
+            return Math.Cos(radians);
+        }
+
+        public double CalculateTan(double value, bool isRadianMode = true)
+        {
+            double radians = isRadianMode ? value : value * Math.PI / 180;
+            return Math.Tan(radians);
+        }
+
+        public double CalculateNaturalLog(double value)
+        {
+            if (value <= 0)
+                throw new ArgumentException("Логарифм определен только для положительных чисел");
+            return Math.Log(value);
+        }
+
+        public double CalculateLog10(double value)
+        {
+            if (value <= 0)
+                throw new ArgumentException("Логарифм определен только для положительных чисел");
+            return Math.Log10(value);
         }
 
         private string PrepareExpression(string expression)
         {
-            // Заменяем символы для парсинга
-            expression = expression.Replace("√", "sqrt");
-            expression = expression.Replace("^", "**"); // для возведения в степень
-            expression = expression.Replace(",", "."); // для десятичных чисел
+            if (string.IsNullOrWhiteSpace(expression))
+                return "";
+
+            // Заменяем отображаемые символы на математические операторы
+            expression = expression.Replace("×", "*")
+                                 .Replace("÷", "/")
+                                 .Replace("−", "-")
+                                 .Replace(",", ".");
+
+            // Убираем лишние пробелы
+            expression = Regex.Replace(expression, @"\s+", "");
 
             return expression;
         }
 
-        private double EvaluateExpression(string expression)
+        private string ProcessSqrtFunction(string expression)
         {
-            // Простой калькулятор выражений
-            // Для базовой версии используем встроенные возможности .NET
-
-            // Удаляем пробелы
-            expression = expression.Replace(" ", "");
-
-            // Для простых выражений используем рекурсивный парсер
-            return ParseExpression(expression);
-        }
-
-        private double ParseExpression(string expression)
-        {
-            // Простой парсер для базовых операций
-            // Обрабатываем скобки
-            while (expression.Contains("("))
+            // Обрабатываем функцию квадратного корня √(выражение) с учетом вложенных скобок
+            int iterations = 0;
+            while (expression.Contains("√(") && iterations < 10)
             {
-                int start = expression.LastIndexOf('(');
-                int end = expression.IndexOf(')', start);
+                // Ищем самое внутреннее выражение √(...)
+                int sqrtIndex = expression.LastIndexOf("√(");
+                if (sqrtIndex == -1) break;
 
-                if (end == -1)
-                    throw new ArgumentException("Несбалансированные скобки");
+                // Находим соответствующую закрывающую скобку
+                int openParens = 0;
+                int closeIndex = -1;
 
-                string subExpression = expression.Substring(start + 1, end - start - 1);
-                double subResult = ParseExpression(subExpression);
-
-                expression = expression.Substring(0, start) +
-                           subResult.ToString(CultureInfo.InvariantCulture) +
-                           expression.Substring(end + 1);
-            }
-
-            // Обрабатываем функции (sqrt)
-            expression = ProcessFunctions(expression);
-
-            // Обрабатываем операции по приоритету
-            return EvaluateSimpleExpression(expression);
-        }
-
-        private string ProcessFunctions(string expression)
-        {
-            // Обработка sqrt
-            while (expression.Contains("sqrt"))
-            {
-                int sqrtIndex = expression.IndexOf("sqrt");
-                int numStart = sqrtIndex + 4;
-
-                // Находим число после sqrt
-                string number = "";
-                for (int i = numStart; i < expression.Length && (char.IsDigit(expression[i]) || expression[i] == '.'); i++)
+                for (int i = sqrtIndex + 2; i < expression.Length; i++)
                 {
-                    number += expression[i];
+                    if (expression[i] == '(')
+                        openParens++;
+                    else if (expression[i] == ')')
+                    {
+                        if (openParens == 0)
+                        {
+                            closeIndex = i;
+                            break;
+                        }
+                        openParens--;
+                    }
                 }
 
-                if (!double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
-                    throw new ArgumentException("Некорректное число для sqrt");
+                if (closeIndex == -1) break; // Нет закрывающей скобки
 
-                double result = CalculateSquareRoot(value);
-                expression = expression.Replace($"sqrt{number}", result.ToString(CultureInfo.InvariantCulture));
+                // Извлекаем выражение внутри корня
+                string innerExpression = expression.Substring(sqrtIndex + 2, closeIndex - sqrtIndex - 2);
+
+                try
+                {
+                    // Вычисляем внутреннее выражение
+                    var table = new DataTable();
+                    var innerResult = table.Compute(innerExpression, null);
+
+                    if (innerResult != DBNull.Value)
+                    {
+                        double value = Convert.ToDouble(innerResult);
+                        if (value < 0)
+                            throw new ArgumentException("Нельзя извлечь корень из отрицательного числа");
+
+                        double sqrtResult = Math.Sqrt(value);
+                        string resultStr = sqrtResult.ToString("G15", CultureInfo.InvariantCulture);
+
+                        // Заменяем √(выражение) на результат
+                        expression = expression.Substring(0, sqrtIndex) + resultStr + expression.Substring(closeIndex + 1);
+                    }
+                    else
+                    {
+                        break; // Не удалось вычислить
+                    }
+                }
+                catch
+                {
+                    // Если не удалось вычислить, пробуем как простое число
+                    if (double.TryParse(innerExpression, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+                    {
+                        if (value < 0)
+                            throw new ArgumentException("Нельзя извлечь корень из отрицательного числа");
+
+                        double sqrtResult = Math.Sqrt(value);
+                        string resultStr = sqrtResult.ToString("G15", CultureInfo.InvariantCulture);
+
+                        // Заменяем √(число) на результат
+                        expression = expression.Substring(0, sqrtIndex) + resultStr + expression.Substring(closeIndex + 1);
+                    }
+                    else
+                    {
+                        break; // Не удалось обработать
+                    }
+                }
+
+                iterations++;
             }
 
             return expression;
         }
 
-        private double EvaluateSimpleExpression(string expression)
+        private string ProcessPowerOperations(string expression)
         {
-            // Простая реализация для базовых операций +, -, *, /
-            // В реальном проекте лучше использовать более сложный парсер
+            // Обрабатываем операции возведения в степень
+            string pattern = @"(\d+(?:\.\d+)?(?:[Ee][+-]?\d+)?)\^(\d+(?:\.\d+)?(?:[Ee][+-]?\d+)?)";
 
-            try
+            int iterations = 0;
+            while (Regex.IsMatch(expression, pattern) && iterations < 10)
             {
-                // Используем встроенные возможности для простых выражений
-                var dataTable = new System.Data.DataTable();
-                var result = dataTable.Compute(expression, null);
-                return Convert.ToDouble(result);
-            }
-            catch
-            {
-                // Fallback для простых случаев
-                if (double.TryParse(expression, NumberStyles.Float, CultureInfo.InvariantCulture, out double simpleResult))
-                    return simpleResult;
+                expression = Regex.Replace(expression, pattern, match =>
+                {
+                    string baseValue = match.Groups[1].Value;
+                    string exponent = match.Groups[2].Value;
 
-                throw new ArgumentException("Невозможно вычислить выражение");
+                    if (double.TryParse(baseValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double baseNum) &&
+                        double.TryParse(exponent, NumberStyles.Float, CultureInfo.InvariantCulture, out double expNum))
+                    {
+                        try
+                        {
+                            double result = Math.Pow(baseNum, expNum);
+                            return result.ToString("G15", CultureInfo.InvariantCulture);
+                        }
+                        catch
+                        {
+                            return match.Value;
+                        }
+                    }
+
+                    return match.Value;
+                });
+
+                iterations++;
             }
+
+            return expression;
         }
     }
 }

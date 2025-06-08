@@ -5,241 +5,123 @@ namespace StudyMateProject
 {
     public partial class MainPage : ContentPage
     {
-        private readonly List<string> _tipsOfDay;
+        private readonly List<string> _calculatorTips;
         private readonly Random _random;
+        private DateTime _sessionStartTime;
 
         public MainPage()
         {
             InitializeComponent();
 
             _random = new Random();
-            _tipsOfDay = new List<string>
+            _sessionStartTime = DateTime.Now;
+
+            _calculatorTips = new List<string>
             {
-                "Используйте калькулятор для быстрых вычислений во время учебы!",
-                "Создавайте заметки с картинками для лучшего запоминания материала.",
-                "Настройте напоминания для важных дедлайнов и экзаменов.",
-                "Организуйте заметки по папкам для быстрого поиска.",
-                "Регулярно синхронизируйте данные между устройствами.",
-                "Используйте графические заметки для схем и диаграмм.",
-                "Делайте короткие перерывы каждые 25 минут (метод Помодоро).",
-                "Повторяйте материал через определенные интервалы времени."
+                "Используйте скобки для сложных вычислений: (2+3)×4 = 20",
+                "Квадратный корень: √16 = 4",
+                "Проценты: 15% от 200 = 30",
+                "Десятичные числа: 3.14 × 2 = 6.28",
+                "Последовательность операций: 2+3×4 = 14 (сначала умножение)",
+                "Научный калькулятор: sin(π/2) = 1",
+                "Степенные функции: 2³ = 8",
+                "Логарифмы: ln(e) = 1",
+                "Константа π ≈ 3.14159",
+                "Константа e ≈ 2.71828"
             };
 
             LoadMainPageData();
         }
 
-        //protected override void OnAppearing()
-        //{
-        //    base.OnAppearing();
-        //    RefreshStatistics();
-        //    ShowRandomTip();
-        //}
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            RefreshStatistics();
+            ShowRandomTip();
+        }
 
         private void LoadMainPageData()
         {
-            // Инициализация данных при первой загрузке
             RefreshStatistics();
             ShowRandomTip();
-            LoadRecentNotes();
         }
 
         private void RefreshStatistics()
         {
-            // Здесь будет логика получения реальной статистики
-            // Пока используем заглушки
+            // Здесь будет логика получения реальной статистики калькулятора
+            CalculationsCountLabel.Text = GetCalculationsCount().ToString();
 
-            //NotesCountLabel.Text = GetNotesCount().ToString();
-            //DrawingsCountLabel.Text = GetDrawingsCount().ToString();
-            //RemindersCountLabel.Text = GetRemindersCount().ToString();
+            // Время сессии
+            var sessionTime = DateTime.Now - _sessionStartTime;
+            SessionTimeLabel.Text = $"{(int)sessionTime.TotalMinutes} мин";
 
-            //// Обновляем прогресс-бар
-            //UpdateWeekProgress();
+            // Последнее вычисление
+            var lastCalculation = GetLastCalculation();
+            LastCalculationLabel.Text = string.IsNullOrEmpty(lastCalculation)
+                ? "Пока нет вычислений"
+                : lastCalculation;
         }
 
         private void ShowRandomTip()
         {
-            int randomIndex = _random.Next(_tipsOfDay.Count);
-            //TipOfDayLabel.Text = _tipsOfDay[randomIndex];
+            int randomIndex = _random.Next(_calculatorTips.Count);
+            TipOfDayLabel.Text = _calculatorTips[randomIndex];
         }
 
-        private void LoadRecentNotes()
+        #region Event Handlers
+
+        private async void OnCalculatorClicked(object sender, EventArgs e)
         {
-            // Здесь будет логика загрузки последних заметок
-            // Пока заметок нет, показываем заглушку
-
-            //var recentNotes = GetRecentNotes();
-
-            //if (recentNotes.Count == 0)
-            //{
-            //    // Заглушка уже есть в XAML
-            //    return;
-            //}
-
-            //// Если есть заметки, очищаем контейнер и добавляем их
-            //RecentNotesContainer.Children.Clear();
-
-            //foreach (var note in recentNotes)
-            //{
-            //    var noteFrame = CreateNotePreview(note);
-            //    RecentNotesContainer.Children.Add(noteFrame);
-            //}
+            try
+            {
+                await Shell.Current.GoToAsync("//calculator");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Не удалось открыть калькулятор: {ex.Message}", "ОК");
+            }
         }
 
-        //private Frame CreateNotePreview(string noteTitle)
-        //{
-        //    var frame = new Frame
-        //    {
-        //        BackgroundColor = Colors.White,
-        //        CornerRadius = 8,
-        //        Padding = new Thickness(10),
-        //        Margin = new Thickness(0, 5),
-        //        HasShadow = false
-        //    };
+        private async void OnScientificCalculatorClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                await Shell.Current.GoToAsync("//scientific");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Не удалось открыть научный калькулятор: {ex.Message}", "ОК");
+            }
+        }
 
-        //    var stackLayout = new StackLayout
-        //    {
-        //        Orientation = StackOrientation.Horizontal
-        //    };
+        #endregion
 
-        //    var titleLabel = new Label
-        //    {
-        //        Text = noteTitle,
-        //        FontSize = 16,
-        //        VerticalOptions = LayoutOptions.Center,
-        //        HorizontalOptions = LayoutOptions.FillAndExpand
-        //    };
+        #region Data Methods (заглушки)
 
-        //    var dateLabel = new Label
-        //    {
-        //        Text = DateTime.Now.ToString("dd.MM"),
-        //        FontSize = 12,
-        //        TextColor = Colors.Gray,
-        //        VerticalOptions = LayoutOptions.Center
-        //    };
+        private int GetCalculationsCount()
+        {
+            // Здесь будет обращение к сервису данных калькулятора
+            return _random.Next(0, 50);
+        }
 
-        //    stackLayout.Children.Add(titleLabel);
-        //    stackLayout.Children.Add(dateLabel);
-        //    frame.Content = stackLayout;
+        private string GetLastCalculation()
+        {
+            // Здесь будет обращение к истории вычислений
+            var sampleCalculations = new[]
+            {
+                "",
+                "25 + 17 = 42",
+                "√144 = 12",
+                "(5+3) × 2 = 16",
+                "100 - 25% = 75",
+                "sin(π/2) = 1",
+                "2³ = 8",
+                "ln(e) = 1"
+            };
 
-        //    // Добавляем обработчик нажатия
-        //    var tapGesture = new TapGestureRecognizer();
-        //    tapGesture.Tapped += (sender, e) => OnNotePreviewTapped(noteTitle);
-        //    frame.GestureRecognizers.Add(tapGesture);
+            return sampleCalculations[_random.Next(sampleCalculations.Length)];
+        }
 
-        //    return frame;
-        //}
-
-        ////private void UpdateWeekProgress()
-        ////{
-        ////    // Здесь будет логика расчета прогресса за неделю
-        ////    // Пока используем случайное значение
-        ////    double progress = _random.NextDouble() * 0.8; // 0-80%
-        ////    WeekProgressBar.Progress = progress;
-        ////}
-
-        //#region Event Handlers
-
-        //private async void OnCreateNoteClicked(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        await Shell.Current.GoToAsync("//notes");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await DisplayAlert("Ошибка", $"Не удалось перейти к заметкам: {ex.Message}", "ОК");
-        //    }
-        //}
-
-        //private async void OnCalculatorClicked(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        await Shell.Current.GoToAsync("//calculator");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await DisplayAlert("Ошибка", $"Не удалось открыть калькулятор: {ex.Message}", "ОК");
-        //    }
-        //}
-
-        //private async void OnDrawingClicked(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        await Shell.Current.GoToAsync("//drawing");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await DisplayAlert("Ошибка", $"Не удалось перейти к рисованию: {ex.Message}", "ОК");
-        //    }
-        //}
-
-        //private async void OnRemindersClicked(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        await Shell.Current.GoToAsync("//reminders");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await DisplayAlert("Ошибка", $"Не удалось перейти к напоминаниям: {ex.Message}", "ОК");
-        //    }
-        //}
-
-        //private async void OnNotePreviewTapped(string noteTitle)
-        //{
-        //    try
-        //    {
-        //        // Переход к детальному просмотру заметки
-        //        await Shell.Current.GoToAsync($"notedetail?title={noteTitle}");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await DisplayAlert("Ошибка", $"Не удалось открыть заметку: {ex.Message}", "ОК");
-        //    }
-        //}
-
-        //#endregion
-
-        //#region Data Methods (заглушки)
-
-        //private int GetNotesCount()
-        //{
-        //    // Здесь будет обращение к сервису данных
-        //    return _random.Next(0, 15);
-        //}
-
-        //private int GetDrawingsCount()
-        //{
-        //    // Здесь будет обращение к сервису данных
-        //    return _random.Next(0, 8);
-        //}
-
-        //private int GetRemindersCount()
-        //{
-        //    // Здесь будет обращение к сервису данных
-        //    return _random.Next(0, 5);
-        //}
-
-        //private List<string> GetRecentNotes()
-        //{
-        //    // Здесь будет обращение к сервису данных
-        //    // Пока возвращаем пустой список
-        //    return new List<string>();
-
-        //    // Пример данных для тестирования:
-        //    /*
-        //    return new List<string>
-        //    {
-        //        "Лекция по математике",
-        //        "Конспект по физике",
-        //        "Домашнее задание",
-        //        "Подготовка к экзамену"
-        //    };
-        //    */
-        //}
-
-//#endregion
+        #endregion
     }
 }

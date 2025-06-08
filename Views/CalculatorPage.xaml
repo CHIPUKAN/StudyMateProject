@@ -2,199 +2,250 @@
 <ContentPage x:Class="StudyMateProject.Views.CalculatorPage"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             Title="Калькулятор">
+             Title="Калькулятор"
+             BackgroundColor="Black">
 
-    <Grid Padding="10" RowSpacing="5" ColumnSpacing="5">
-        <!-- Определяем строки -->
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="2*"/>
-            <!-- Дисплей -->
-            <RowDefinition Height="*"/>
-            <!-- Строка 1: C, CE, %, / -->
-            <RowDefinition Height="*"/>
-            <!-- Строка 2: 7, 8, 9, * -->
-            <RowDefinition Height="*"/>
-            <!-- Строка 3: 4, 5, 6, - -->
-            <RowDefinition Height="*"/>
-            <!-- Строка 4: 1, 2, 3, + -->
-            <RowDefinition Height="*"/>
-            <!-- Строка 5: 0, ., √, = -->
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="6*" />
         </Grid.RowDefinitions>
 
-        <!-- Определяем колонки -->
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
         <!-- Дисплей -->
-        <Border Grid.Row="0" Grid.ColumnSpan="4" 
-                BackgroundColor="Black" 
-                Stroke="Gray" 
-                StrokeThickness="2">
-            <StackLayout Padding="15" VerticalOptions="End">
-                <!-- Показываем выражение -->
-                <Label x:Name="ExpressionLabel" 
-                       Text="0" 
-                       TextColor="LightGray" 
-                       FontSize="16" 
-                       HorizontalOptions="End"/>
-                <!-- Показываем результат -->
-                <Label x:Name="DisplayLabel" 
-                       Text="0" 
-                       TextColor="White" 
-                       FontSize="32" 
-                       FontAttributes="Bold"
-                       HorizontalOptions="End"/>
-            </StackLayout>
-        </Border>
+        <StackLayout Grid.Row="0" 
+                     Padding="20"
+                     VerticalOptions="End">
 
-        <!-- Первая строка кнопок: C, CE, %, / -->
-        <Button Grid.Row="1" Grid.Column="0" 
-                Text="C" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnClearClicked"/>
+            <!-- Верхняя строка - статус -->
+            <Label x:Name="ExpressionLabel"
+                   Text="Введите выражение"
+                   FontSize="16"
+                   TextColor="Gray"
+                   HorizontalTextAlignment="End"
+                   VerticalOptions="Start" />
 
-        <Button Grid.Row="1" Grid.Column="1" 
-                Text="CE" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnClearEntryClicked"/>
+            <!-- Основной дисплей -->
+            <Label x:Name="DisplayLabel"
+                   Text="0"
+                   FontSize="48"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalTextAlignment="End"
+                   VerticalOptions="End"
+                   LineBreakMode="TailTruncation" />
+        </StackLayout>
 
-        <Button Grid.Row="1" Grid.Column="2" 
-                Text="%" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnOperatorClicked"/>
+        <!-- Кнопки -->
+        <Grid Grid.Row="1" 
+              Padding="10"
+              RowSpacing="8"
+              ColumnSpacing="8">
 
-        <Button Grid.Row="1" Grid.Column="3" 
-                Text="÷" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnOperatorClicked"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <!-- Вторая строка кнопок: 7, 8, 9, * -->
-        <Button Grid.Row="2" Grid.Column="0" 
-                Text="7" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <Button Grid.Row="2" Grid.Column="1" 
-                Text="8" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <!-- Первая строка: C, CE, ⌫, ÷ -->
+            <Button Text="C" 
+                    Grid.Row="0" Grid.Column="0"
+                    BackgroundColor="#A6A6A6"
+                    TextColor="Black"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    Clicked="OnClearClicked" />
 
-        <Button Grid.Row="2" Grid.Column="2" 
-                Text="9" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <Button Text="CE" 
+                    Grid.Row="0" Grid.Column="1"
+                    BackgroundColor="#A6A6A6"
+                    TextColor="Black"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    Clicked="OnClearEntryClicked" />
 
-        <Button Grid.Row="2" Grid.Column="3" 
-                Text="×" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnOperatorClicked"/>
+            <Button Text="⌫" 
+                    Grid.Row="0" Grid.Column="2"
+                    BackgroundColor="#A6A6A6"
+                    TextColor="Black"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    Clicked="OnBackspaceClicked" />
 
-        <!-- Третья строка кнопок: 4, 5, 6, - -->
-        <Button Grid.Row="3" Grid.Column="0" 
-                Text="4" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <Button Text="÷" 
+                    Grid.Row="0" Grid.Column="3"
+                    BackgroundColor="#FF9500"
+                    TextColor="White"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    Clicked="OnOperatorClicked" />
 
-        <Button Grid.Row="3" Grid.Column="1" 
-                Text="5" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <!-- Вторая строка: √, (, ), × -->
+            <Button Text="√" 
+                    Grid.Row="1" Grid.Column="0"
+                    BackgroundColor="#A6A6A6"
+                    TextColor="Black"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    Clicked="OnSquareRootClicked" />
 
-        <Button Grid.Row="3" Grid.Column="2" 
-                Text="6" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <Button Text="(" 
+                    Grid.Row="1" Grid.Column="1"
+                    BackgroundColor="#A6A6A6"
+                    TextColor="Black"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    Clicked="OnOpenParenthesisClicked" />
 
-        <Button Grid.Row="3" Grid.Column="3" 
-                Text="−" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnOperatorClicked"/>
+            <Button Text=")" 
+                    Grid.Row="1" Grid.Column="2"
+                    BackgroundColor="#A6A6A6"
+                    TextColor="Black"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    Clicked="OnCloseParenthesisClicked" />
 
-        <!-- Четвертая строка кнопок: 1, 2, 3, + -->
-        <Button Grid.Row="4" Grid.Column="0" 
-                Text="1" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <Button Text="×" 
+                    Grid.Row="1" Grid.Column="3"
+                    BackgroundColor="#FF9500"
+                    TextColor="White"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    Clicked="OnOperatorClicked" />
 
-        <Button Grid.Row="4" Grid.Column="1" 
-                Text="2" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <!-- Третья строка: 7, 8, 9, − -->
+            <Button Text="7" 
+                    Grid.Row="2" Grid.Column="0"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
 
-        <Button Grid.Row="4" Grid.Column="2" 
-                Text="3" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <Button Text="8" 
+                    Grid.Row="2" Grid.Column="1"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
 
-        <Button Grid.Row="4" Grid.Column="3" 
-                Text="+" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnOperatorClicked"/>
+            <Button Text="9" 
+                    Grid.Row="2" Grid.Column="2"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
 
-        <!-- Пятая строка кнопок: 0, ., √, = -->
-        <Button Grid.Row="5" Grid.Column="0" 
-                Text="0" 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnNumberClicked"/>
+            <Button Text="−" 
+                    Grid.Row="2" Grid.Column="3"
+                    BackgroundColor="#FF9500"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnOperatorClicked" />
 
-        <Button Grid.Row="5" Grid.Column="1" 
-                Text="." 
-                BackgroundColor="DarkGray" 
-                TextColor="White"
-                FontSize="24"
-                Clicked="OnDecimalClicked"/>
+            <!-- Четвертая строка: 4, 5, 6, + -->
+            <Button Text="4" 
+                    Grid.Row="3" Grid.Column="0"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
 
-        <Button Grid.Row="5" Grid.Column="2" 
-                Text="√" 
-                BackgroundColor="Orange" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnSquareRootClicked"/>
+            <Button Text="5" 
+                    Grid.Row="3" Grid.Column="1"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
 
-        <Button Grid.Row="5" Grid.Column="3" 
-                Text="=" 
-                BackgroundColor="DodgerBlue" 
-                TextColor="White"
-                FontSize="20"
-                Clicked="OnEqualsClicked"/>
+            <Button Text="6" 
+                    Grid.Row="3" Grid.Column="2"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
 
+            <Button Text="+" 
+                    Grid.Row="3" Grid.Column="3"
+                    BackgroundColor="#FF9500"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnOperatorClicked" />
+
+            <!-- Пятая строка: 1, 2, 3, = -->
+            <Button Text="1" 
+                    Grid.Row="4" Grid.Column="0"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
+
+            <Button Text="2" 
+                    Grid.Row="4" Grid.Column="1"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
+
+            <Button Text="3" 
+                    Grid.Row="4" Grid.Column="2"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
+
+            <Button Text="=" 
+                    Grid.Row="4" Grid.Column="3"
+                    BackgroundColor="#FF9500"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnEqualsClicked" />
+
+            <!-- Шестая строка: 0 (широкая), ., % -->
+            <Button Text="0" 
+                    Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnNumberClicked" />
+
+            <Button Text="." 
+                    Grid.Row="5" Grid.Column="2"
+                    BackgroundColor="#333333"
+                    TextColor="White"
+                    FontSize="32"
+                    FontAttributes="Bold"
+                    Clicked="OnDecimalClicked" />
+
+            <Button Text="%" 
+                    Grid.Row="5" Grid.Column="3"
+                    BackgroundColor="#A6A6A6"
+                    TextColor="Black"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    Clicked="OnPercentClicked" />
+        </Grid>
     </Grid>
 </ContentPage>

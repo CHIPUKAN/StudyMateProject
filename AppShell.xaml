@@ -4,12 +4,88 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:StudyMateProject"
-    Shell.FlyoutBehavior="Disabled"
-    Title="StudyMateProject">
+    xmlns:views="clr-namespace:StudyMateProject.Views"
+    Title="StudyMate"
+    FlyoutBehavior="Flyout">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:Views.CalculatorPage}"
-        Route="Views.CalculatorPage" />
+    <!-- Стили для Shell -->
+    <Shell.Resources>
+        <ResourceDictionary>
+            <Style x:Key="BaseStyle" TargetType="Element">
+                <Setter Property="Shell.BackgroundColor" Value="#2E8B57" />
+                <Setter Property="Shell.ForegroundColor" Value="White" />
+                <Setter Property="Shell.TitleColor" Value="White" />
+                <Setter Property="Shell.DisabledColor" Value="#B4B4B4" />
+                <Setter Property="Shell.UnselectedColor" Value="#95FFFFFF" />
+                <Setter Property="Shell.TabBarBackgroundColor" Value="#2E8B57" />
+                <Setter Property="Shell.TabBarForegroundColor" Value="White"/>
+                <Setter Property="Shell.TabBarUnselectedColor" Value="#95FFFFFF"/>
+                <Setter Property="Shell.TabBarTitleColor" Value="White"/>
+            </Style>
+            <Style TargetType="TabBar" BasedOn="{StaticResource BaseStyle}" />
+            <Style TargetType="FlyoutItem" BasedOn="{StaticResource BaseStyle}" />
+        </ResourceDictionary>
+    </Shell.Resources>
+
+    <!-- Заголовок приложения в меню -->
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="#2E8B57" HeightRequest="200">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" 
+                   Text="🧮" 
+                   FontSize="60"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   TextColor="White" />
+
+            <Label Grid.Row="1" 
+                   Text="StudyMate Calculator" 
+                   FontSize="24" 
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   VerticalOptions="End"
+                   Margin="0,0,0,20" />
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <!-- Главная страница -->
+    <FlyoutItem Title="Главная" Icon="home.png">
+        <ShellContent 
+            Title="Главная"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="main" />
+    </FlyoutItem>
+
+    <!-- Обычный калькулятор -->
+    <FlyoutItem Title="Обычный калькулятор" Icon="calculator.png">
+        <ShellContent 
+            Title="Калькулятор"
+            ContentTemplate="{DataTemplate views:CalculatorPage}"
+            Route="calculator" />
+    </FlyoutItem>
+
+    <!-- Научный калькулятор -->
+    <FlyoutItem Title="Научный калькулятор" Icon="scientific.png">
+        <ShellContent 
+            Title="Научный калькулятор"
+            ContentTemplate="{DataTemplate views:ScientificCalculatorPage}"
+            Route="scientific" />
+    </FlyoutItem>
+
+    <!-- Подвал меню -->
+    <Shell.FlyoutFooter>
+        <Grid BackgroundColor="#1F5F3F" HeightRequest="60">
+            <Label Text="v1.0.0 - Обычный + Научный" 
+                   FontSize="12"
+                   TextColor="LightGray"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+        </Grid>
+    </Shell.FlyoutFooter>
 
 </Shell>

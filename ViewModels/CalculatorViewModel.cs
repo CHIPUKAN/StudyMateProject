@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using StudyMateProject.Models;
 using StudyMateProject.Services;
@@ -82,9 +80,7 @@ namespace StudyMateProject.ViewModels
 
         #region Public Methods
 
-        /// <summary>
         /// Обработка ввода цифры
-        /// </summary>
         /// <param name="number">Цифра в виде строки</param>
         public void InputNumber(string number)
         {
@@ -330,9 +326,7 @@ namespace StudyMateProject.ViewModels
         #endregion
     }
 
-    /// <summary>
     /// Результат вычисления
-    /// </summary>
     public class CalculationResult
     {
         public bool IsSuccess { get; set; }
