@@ -228,13 +228,14 @@
 
             <!-- Шестая строка: 📊, 0, ., % -->
             <Button x:Name="CalculatorModeButton"
-                    Text="📊"
                     Grid.Row="5" Grid.Column="0"
-                    BackgroundColor="#666666"
-                    TextColor="White"
-                    FontSize="24"
-                    FontAttributes="Bold"
-                    Clicked="OnToggleCalculatorModeClicked" />
+                    BackgroundColor="#333333"
+                    Padding="1"
+                    Clicked="OnToggleCalculatorModeClicked">
+                <Button.ImageSource>
+                    <FileImageSource File="calc4.png" />
+                </Button.ImageSource>
+            </Button>
             <Button Text="0" 
                     Grid.Row="5" Grid.Column="1" 
                     BackgroundColor="#333333"
@@ -535,8 +536,67 @@
                     TextColor="White"
                     FontSize="20"
                     FontAttributes="Bold"
-                    CornerRadius="8"
+                    CornerRadius="8"      
                     Clicked="OnToggleCalculatorModeClicked" />
         </Grid>
+        <!-- Всплывающее меню выбора калькулятора -->
+        <Grid x:Name="CalculatorSelectorOverlay" 
+      IsVisible="False"
+      BackgroundColor="#80000000"
+      Grid.RowSpan="2">
+
+            <Frame BackgroundColor="Black"
+           BorderColor="Gray"
+           CornerRadius="15"
+           Padding="20"
+           VerticalOptions="Center"
+           HorizontalOptions="Center"
+           WidthRequest="280">
+
+                <StackLayout Spacing="15">
+                    <!-- Заголовок -->
+                    <Label Text="Выберите тип калькулятора"
+                   TextColor="White"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+
+                    <!-- Кнопки выбора -->
+                    <Button BackgroundColor="#333333"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="12"
+                        HeightRequest="50"
+                        Clicked="OnBasicCalculatorSelected">
+                        <Button.ImageSource>
+                            <FileImageSource File="base.png" />
+                        </Button.ImageSource>
+                        <Button.Text>Стандартный</Button.Text>
+                    </Button>
+
+                    <Button BackgroundColor="#333333"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="12"
+                        HeightRequest="50"
+                        Clicked="OnScientificCalculatorSelected">
+                        <Button.ImageSource>
+                            <FileImageSource File="sqrt1.png" />
+                        </Button.ImageSource>
+                        <Button.Text>Научный</Button.Text>
+                    </Button>
+
+                    <Button Text="❌ Отмена"
+                    BackgroundColor="#666666"
+                    TextColor="White"
+                    FontSize="14"
+                    CornerRadius="10"
+                    Clicked="OnCancelSelection" />
+                </StackLayout>
+            </Frame>
+        </Grid>
+
     </Grid>
 </ContentPage>

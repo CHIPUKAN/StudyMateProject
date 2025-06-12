@@ -24,30 +24,50 @@ namespace StudyMateProject.Views
         #region Mode Switching
         private void OnToggleCalculatorModeClicked(object sender, EventArgs e)
         {
-            _isScientificMode = !_isScientificMode;
+            // Показываем меню выбора с анимацией
+            CalculatorSelectorOverlay.IsVisible = true;
+            CalculatorSelectorOverlay.FadeTo(1, 250, Easing.CubicOut);
+        }
 
-            if (_isScientificMode)
-            {
-                SwitchToScientificMode();
-            }
-            else
-            {
-                SwitchToBasicMode();
-            }
+        private async void OnBasicCalculatorSelected(object sender, EventArgs e)
+        {
+            // Анимация скрытия
+            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+            CalculatorSelectorOverlay.IsVisible = false;
+
+            // Переключаем на обычный калькулятор
+            SwitchToBasicMode();
+        }
+
+        private async void OnScientificCalculatorSelected(object sender, EventArgs e)
+        {
+            // Анимация скрытия
+            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+            CalculatorSelectorOverlay.IsVisible = false;
+
+            // Переключаем на научный калькулятор
+            SwitchToScientificMode();
+        }
+
+        private async void OnCancelSelection(object sender, EventArgs e)
+        {
+            // Просто скрываем меню с анимацией
+            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+            CalculatorSelectorOverlay.IsVisible = false;
         }
 
         private void SwitchToBasicMode()
         {
             BasicCalculatorPanel.IsVisible = true;
             ScientificCalculatorPanel.IsVisible = false;
-            CalculatorModeButton.Text = "📊";
+            _isScientificMode = false;
         }
 
         private void SwitchToScientificMode()
         {
             BasicCalculatorPanel.IsVisible = false;
             ScientificCalculatorPanel.IsVisible = true;
-            CalculatorModeButtonScientific.Text = "🔢";
+            _isScientificMode = true;
         }
         #endregion
 
