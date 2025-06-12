@@ -17,7 +17,8 @@ namespace StudyMateProject.Services
                 // Подготавливаем выражение
                 expression = PrepareExpression(expression);
 
-                // Обрабатываем функции
+                // Обрабатываем научные функции в правильном порядке
+                expression = ProcessScientificFunctions(expression);
                 expression = ProcessSqrtFunction(expression);
                 expression = ProcessPowerOperations(expression);
 
@@ -48,7 +49,6 @@ namespace StudyMateProject.Services
 
             try
             {
-                // Подготавливаем выражение
                 string prepared = PrepareExpression(expression);
 
                 // Проверяем балансировку скобок
@@ -61,16 +61,15 @@ namespace StudyMateProject.Services
                 }
                 if (openParens != 0) return false;
 
-                // Проверяем на недопустимые символы
-                if (Regex.IsMatch(prepared, @"[^0-9+\-*/.() \^√qrts]"))
+                // Проверяем на недопустимые символы (расширенный список для научных функций)
+                if (Regex.IsMatch(prepared, @"[^0-9+\-*/.() \^√²³qrtsincostalgnateEeGg]"))
                     return false;
 
-                // Проверяем, что выражение не заканчивается оператором
+                // Проверяем окончания
                 string trimmed = prepared.Trim();
                 if (Regex.IsMatch(trimmed, @"[+\-*/.^]$"))
                     return false;
 
-                // Проверяем, что выражение не начинается с недопустимого оператора
                 if (Regex.IsMatch(trimmed, @"^[+*/.^]"))
                     return false;
 
@@ -169,10 +168,116 @@ namespace StudyMateProject.Services
             expression = expression.Replace("×", "*")
                                  .Replace("÷", "/")
                                  .Replace("−", "-")
-                                 .Replace(",", ".");
+                                 .Replace(",", ".")
+                                 .Replace("²", "^2")
+                                 .Replace("³", "^3");
 
             // Убираем лишние пробелы
             expression = Regex.Replace(expression, @"\s+", "");
+
+            return expression;
+        }
+
+        private string ProcessScientificFunctions(string expression)
+        {
+            // Обрабатываем научные функции в порядке приоритета
+            // Сначала самые длинные названия, потом короткие
+
+            // Тригонометрические функции (работают в радианах)
+            expression = ProcessFunction(expression, "sin", x => Math.Sin(x));
+            expression = ProcessFunction(expression, "cos", x => Math.Cos(x));
+            expression = ProcessFunction(expression, "tan", x => Math.Tan(x));
+            expression = ProcessFunction(expression, "cot", x => {
+                double tanValue = Math.Tan(x);
+                if (Math.Abs(tanValue) < 1e-10)
+                    throw new ArgumentException("Котангенс не определен для этого значения");
+                return 1.0 / tanValue; // котангенс = 1/тангенс
+            });
+
+            // Логарифмические функции
+            expression = ProcessFunction(expression, "ln", x => {
+                if (x <= 0) throw new ArgumentException("Логарифм определен только для положительных чисел");
+                return Math.Log(x); // натуральный логарифм
+            });
+
+            expression = ProcessFunction(expression, "log", x => {
+                if (x <= 0) throw new ArgumentException("Логарифм определен только для положительных чисел");
+                return Math.Log10(x); // десятичный логарифм
+            });
+
+            return expression;
+        }
+
+        private string ProcessFunction(string expression, string functionName, Func<double, double> function)
+        {
+            // Обрабатываем функции с правильной балансировкой скобок
+            int iterations = 0;
+            while (expression.Contains($"{functionName}(") && iterations < 20)
+            {
+                // Ищем самое внутреннее выражение функции (справа налево)
+                int funcIndex = expression.LastIndexOf($"{functionName}(");
+                if (funcIndex == -1) break;
+
+                // Находим соответствующую закрывающую скобку
+                int openParens = 0;
+                int closeIndex = -1;
+
+                for (int i = funcIndex + functionName.Length + 1; i < expression.Length; i++)
+                {
+                    if (expression[i] == '(')
+                        openParens++;
+                    else if (expression[i] == ')')
+                    {
+                        if (openParens == 0)
+                        {
+                            closeIndex = i;
+                            break;
+                        }
+                        openParens--;
+                    }
+                }
+
+                if (closeIndex == -1) break; // Нет закрывающей скобки
+
+                // Извлекаем выражение внутри функции
+                string innerExpression = expression.Substring(funcIndex + functionName.Length + 1,
+                                                             closeIndex - funcIndex - functionName.Length - 1);
+
+                try
+                {
+                    double value;
+
+                    // Пробуем вычислить внутреннее выражение
+                    if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
+                        innerExpression.Contains("tan") || innerExpression.Contains("log") ||
+                        innerExpression.Contains("ln") || innerExpression.Contains("√") ||
+                        innerExpression.Contains("^"))
+                    {
+                        // Рекурсивно обрабатываем сложное выражение
+                        value = Calculate(innerExpression);
+                    }
+                    else
+                    {
+                        // Простое числовое выражение
+                        var table = new DataTable();
+                        var innerResult = table.Compute(innerExpression, null);
+                        value = Convert.ToDouble(innerResult);
+                    }
+
+                    double result = function(value);
+                    string resultStr = result.ToString("G15", CultureInfo.InvariantCulture);
+
+                    // Заменяем функция(выражение) на результат
+                    expression = expression.Substring(0, funcIndex) + resultStr + expression.Substring(closeIndex + 1);
+                }
+                catch
+                {
+                    // Если не удалось вычислить, прерываем
+                    break;
+                }
+
+                iterations++;
+            }
 
             return expression;
         }
@@ -181,7 +286,7 @@ namespace StudyMateProject.Services
         {
             // Обрабатываем функцию квадратного корня √(выражение) с учетом вложенных скобок
             int iterations = 0;
-            while (expression.Contains("√(") && iterations < 10)
+            while (expression.Contains("√(") && iterations < 20)
             {
                 // Ищем самое внутреннее выражение √(...)
                 int sqrtIndex = expression.LastIndexOf("√(");
@@ -206,52 +311,42 @@ namespace StudyMateProject.Services
                     }
                 }
 
-                if (closeIndex == -1) break; // Нет закрывающей скобки
+                if (closeIndex == -1) break;
 
                 // Извлекаем выражение внутри корня
                 string innerExpression = expression.Substring(sqrtIndex + 2, closeIndex - sqrtIndex - 2);
 
                 try
                 {
-                    // Вычисляем внутреннее выражение
-                    var table = new DataTable();
-                    var innerResult = table.Compute(innerExpression, null);
+                    double value;
 
-                    if (innerResult != DBNull.Value)
+                    // Рекурсивно вычисляем сложные выражения
+                    if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
+                        innerExpression.Contains("tan") || innerExpression.Contains("log") ||
+                        innerExpression.Contains("ln") || innerExpression.Contains("√") ||
+                        innerExpression.Contains("^"))
                     {
-                        double value = Convert.ToDouble(innerResult);
-                        if (value < 0)
-                            throw new ArgumentException("Нельзя извлечь корень из отрицательного числа");
-
-                        double sqrtResult = Math.Sqrt(value);
-                        string resultStr = sqrtResult.ToString("G15", CultureInfo.InvariantCulture);
-
-                        // Заменяем √(выражение) на результат
-                        expression = expression.Substring(0, sqrtIndex) + resultStr + expression.Substring(closeIndex + 1);
+                        value = Calculate(innerExpression);
                     }
                     else
                     {
-                        break; // Не удалось вычислить
+                        var table = new DataTable();
+                        var innerResult = table.Compute(innerExpression, null);
+                        value = Convert.ToDouble(innerResult);
                     }
+
+                    if (value < 0)
+                        throw new ArgumentException("Нельзя извлечь корень из отрицательного числа");
+
+                    double sqrtResult = Math.Sqrt(value);
+                    string resultStr = sqrtResult.ToString("G15", CultureInfo.InvariantCulture);
+
+                    // Заменяем √(выражение) на результат
+                    expression = expression.Substring(0, sqrtIndex) + resultStr + expression.Substring(closeIndex + 1);
                 }
                 catch
                 {
-                    // Если не удалось вычислить, пробуем как простое число
-                    if (double.TryParse(innerExpression, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
-                    {
-                        if (value < 0)
-                            throw new ArgumentException("Нельзя извлечь корень из отрицательного числа");
-
-                        double sqrtResult = Math.Sqrt(value);
-                        string resultStr = sqrtResult.ToString("G15", CultureInfo.InvariantCulture);
-
-                        // Заменяем √(число) на результат
-                        expression = expression.Substring(0, sqrtIndex) + resultStr + expression.Substring(closeIndex + 1);
-                    }
-                    else
-                    {
-                        break; // Не удалось обработать
-                    }
+                    break;
                 }
 
                 iterations++;
@@ -262,33 +357,40 @@ namespace StudyMateProject.Services
 
         private string ProcessPowerOperations(string expression)
         {
-            // Обрабатываем операции возведения в степень
+            // Обрабатываем операции возведения в степень справа налево (правоассоциативность)
             string pattern = @"(\d+(?:\.\d+)?(?:[Ee][+-]?\d+)?)\^(\d+(?:\.\d+)?(?:[Ee][+-]?\d+)?)";
 
             int iterations = 0;
-            while (Regex.IsMatch(expression, pattern) && iterations < 10)
+            while (Regex.IsMatch(expression, pattern) && iterations < 20)
             {
-                expression = Regex.Replace(expression, pattern, match =>
+                var matches = Regex.Matches(expression, pattern);
+                var lastMatch = matches[matches.Count - 1]; // Обрабатываем справа налево
+
+                string baseValue = lastMatch.Groups[1].Value;
+                string exponent = lastMatch.Groups[2].Value;
+
+                if (double.TryParse(baseValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double baseNum) &&
+                    double.TryParse(exponent, NumberStyles.Float, CultureInfo.InvariantCulture, out double expNum))
                 {
-                    string baseValue = match.Groups[1].Value;
-                    string exponent = match.Groups[2].Value;
-
-                    if (double.TryParse(baseValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double baseNum) &&
-                        double.TryParse(exponent, NumberStyles.Float, CultureInfo.InvariantCulture, out double expNum))
+                    try
                     {
-                        try
-                        {
-                            double result = Math.Pow(baseNum, expNum);
-                            return result.ToString("G15", CultureInfo.InvariantCulture);
-                        }
-                        catch
-                        {
-                            return match.Value;
-                        }
-                    }
+                        double result = Math.Pow(baseNum, expNum);
+                        if (double.IsNaN(result) || double.IsInfinity(result))
+                            throw new InvalidOperationException("Результат степени некорректен");
 
-                    return match.Value;
-                });
+                        string resultStr = result.ToString("G15", CultureInfo.InvariantCulture);
+                        expression = expression.Substring(0, lastMatch.Index) + resultStr +
+                                   expression.Substring(lastMatch.Index + lastMatch.Length);
+                    }
+                    catch
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
 
                 iterations++;
             }

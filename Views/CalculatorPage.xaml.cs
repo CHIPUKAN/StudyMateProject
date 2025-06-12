@@ -11,6 +11,7 @@ namespace StudyMateProject.Views
         private readonly CalculatorModel _calculatorModel;
         private string _currentExpression = "";
         private bool _justCalculated = false;
+        private bool _isScientificMode = false;
 
         public CalculatorPage()
         {
@@ -20,6 +21,37 @@ namespace StudyMateProject.Views
             UpdateDisplay();
         }
 
+        #region Mode Switching
+        private void OnToggleCalculatorModeClicked(object sender, EventArgs e)
+        {
+            _isScientificMode = !_isScientificMode;
+
+            if (_isScientificMode)
+            {
+                SwitchToScientificMode();
+            }
+            else
+            {
+                SwitchToBasicMode();
+            }
+        }
+
+        private void SwitchToBasicMode()
+        {
+            BasicCalculatorPanel.IsVisible = true;
+            ScientificCalculatorPanel.IsVisible = false;
+            CalculatorModeButton.Text = "📊";
+        }
+
+        private void SwitchToScientificMode()
+        {
+            BasicCalculatorPanel.IsVisible = false;
+            ScientificCalculatorPanel.IsVisible = true;
+            CalculatorModeButtonScientific.Text = "🔢";
+        }
+        #endregion
+
+        #region Basic Operations
         private void OnNumberClicked(object sender, EventArgs e)
         {
             if (sender is not Button button) return;
@@ -27,7 +59,6 @@ namespace StudyMateProject.Views
 
             if (_justCalculated)
             {
-                // После расчета начинаем новое выражение
                 _currentExpression = number;
                 _justCalculated = false;
             }
@@ -44,7 +75,6 @@ namespace StudyMateProject.Views
             if (sender is not Button button) return;
             string operatorSymbol = button.Text;
 
-            // Конвертируем символы для отображения
             string mathOperator = operatorSymbol switch
             {
                 "÷" => " ÷ ",
@@ -56,16 +86,13 @@ namespace StudyMateProject.Views
 
             if (_justCalculated)
             {
-                // После расчета используем результат
                 _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + mathOperator;
                 _justCalculated = false;
             }
             else if (!string.IsNullOrEmpty(_currentExpression))
             {
-                // Проверяем, не заканчивается ли выражение уже оператором
                 if (_currentExpression.TrimEnd().EndsWith(" "))
                 {
-                    // Заменяем последний оператор
                     var trimmed = _currentExpression.TrimEnd();
                     var lastSpaceIndex = trimmed.LastIndexOf(' ');
                     if (lastSpaceIndex > 0)
@@ -75,13 +102,11 @@ namespace StudyMateProject.Views
                 }
                 else
                 {
-                    // Добавляем новый оператор
                     _currentExpression += mathOperator;
                 }
             }
             else if (_calculatorModel.LastResult != 0)
             {
-                // Начинаем с предыдущего результата
                 _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + mathOperator;
             }
 
@@ -92,20 +117,17 @@ namespace StudyMateProject.Views
         {
             if (_justCalculated)
             {
-                // После расчета начинаем новое число
                 _currentExpression = "0.";
                 _justCalculated = false;
             }
             else
             {
-                // Находим последнее число в выражении
                 var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
                 string lastPart = parts[^1].Trim();
 
-                // Проверяем, есть ли уже точка в последнем числе
                 if (!lastPart.Contains("."))
                 {
-                    if (string.IsNullOrEmpty(lastPart) || lastPart.EndsWith("(") || lastPart.EndsWith("√"))
+                    if (string.IsNullOrEmpty(lastPart) || lastPart.EndsWith("("))
                     {
                         _currentExpression += "0.";
                     }
@@ -125,14 +147,12 @@ namespace StudyMateProject.Views
             {
                 if (_justCalculated)
                 {
-                    // Применяем процент к результату
                     double percentValue = _calculatorModel.LastResult / 100;
                     _currentExpression = _calculatorService.FormatResult(percentValue);
                     _justCalculated = false;
                 }
                 else if (!string.IsNullOrEmpty(_currentExpression))
                 {
-                    // Находим последнее число и заменяем его на процент
                     var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
                     string lastPart = parts[^1].Trim();
 
@@ -141,7 +161,6 @@ namespace StudyMateProject.Views
                         double percentValue = number / 100;
                         string formattedPercent = _calculatorService.FormatResult(percentValue);
 
-                        // Заменяем последнее число
                         if (parts.Length > 1)
                         {
                             parts[^1] = formattedPercent;
@@ -169,7 +188,6 @@ namespace StudyMateProject.Views
                 if (string.IsNullOrWhiteSpace(_currentExpression))
                     return;
 
-                // Подготавливаем выражение для вычисления
                 string expression = _currentExpression.Trim();
 
                 // Убираем оператор в конце, если есть
@@ -196,11 +214,9 @@ namespace StudyMateProject.Views
                 double result = _calculatorService.Calculate(expression);
                 string formattedResult = _calculatorService.FormatResult(result);
 
-                // Добавляем в историю
                 string historyEntry = $"{_currentExpression.Trim()} = {formattedResult}";
                 _calculatorModel.AddToHistory(historyEntry);
 
-                // Сохраняем результат
                 _calculatorModel.LastResult = result;
                 _currentExpression = formattedResult;
                 _justCalculated = true;
@@ -217,13 +233,11 @@ namespace StudyMateProject.Views
         {
             if (_justCalculated)
             {
-                // После расчета начинаем новое выражение с корнем
                 _currentExpression = "√(";
                 _justCalculated = false;
             }
             else
             {
-                // УБИРАЕМ автоматическое умножение - просто добавляем корень
                 _currentExpression += "√(";
             }
 
@@ -234,13 +248,11 @@ namespace StudyMateProject.Views
         {
             if (_justCalculated)
             {
-                // После расчета начинаем новое выражение со скобкой
                 _currentExpression = "(";
                 _justCalculated = false;
             }
             else
             {
-                // УБИРАЕМ автоматическое умножение - просто добавляем скобку
                 _currentExpression += "(";
             }
 
@@ -251,7 +263,8 @@ namespace StudyMateProject.Views
         {
             if (!string.IsNullOrEmpty(_currentExpression) &&
                 !_currentExpression.TrimEnd().EndsWith(" ") &&
-                !_currentExpression.EndsWith("("))
+                !_currentExpression.EndsWith("(") &&
+                CountOpenParentheses() > CountCloseParentheses())
             {
                 _currentExpression += ")";
                 UpdateDisplay();
@@ -270,15 +283,12 @@ namespace StudyMateProject.Views
         {
             if (_justCalculated)
             {
-                // После расчета CE работает как C
                 OnClearClicked(sender, e);
             }
             else
             {
-                // Удаляем последний элемент (число или оператор)
                 if (_currentExpression.TrimEnd().EndsWith(" "))
                 {
-                    // Удаляем оператор
                     var trimmed = _currentExpression.TrimEnd();
                     var lastSpaceIndex = trimmed.LastIndexOf(' ');
                     if (lastSpaceIndex > 0)
@@ -292,7 +302,6 @@ namespace StudyMateProject.Views
                 }
                 else
                 {
-                    // Удаляем последнее число
                     var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
                     if (parts.Length > 1)
                     {
@@ -314,7 +323,6 @@ namespace StudyMateProject.Views
         {
             if (_justCalculated)
             {
-                // После расчета начинаем редактировать результат
                 _justCalculated = false;
                 if (_currentExpression.Length > 1)
                 {
@@ -327,8 +335,22 @@ namespace StudyMateProject.Views
             }
             else if (!string.IsNullOrEmpty(_currentExpression))
             {
-                // Умное удаление последнего символа
-                if (_currentExpression.EndsWith("√("))
+                // Умное удаление для научных функций
+                if (_currentExpression.EndsWith("sin(") || _currentExpression.EndsWith("cos(") ||
+                    _currentExpression.EndsWith("tan(") || _currentExpression.EndsWith("cot(") ||
+                    _currentExpression.EndsWith("log("))
+                {
+                    _currentExpression = _currentExpression[..^4]; // убираем "func("
+                }
+                else if (_currentExpression.EndsWith("atan("))
+                {
+                    _currentExpression = _currentExpression[..^5]; // убираем "atan("
+                }
+                else if (_currentExpression.EndsWith("ln("))
+                {
+                    _currentExpression = _currentExpression[..^3]; // убираем "ln("
+                }
+                else if (_currentExpression.EndsWith("√("))
                 {
                     _currentExpression = _currentExpression[..^2]; // убираем "√("
                 }
@@ -336,23 +358,6 @@ namespace StudyMateProject.Views
                          _currentExpression.EndsWith(" × ") || _currentExpression.EndsWith(" ÷ "))
                 {
                     _currentExpression = _currentExpression[..^3]; // убираем " op "
-                }
-                else if (_currentExpression.EndsWith(")"))
-                {
-                    // При удалении закрывающей скобки нужно проверить, не нарушается ли баланс
-                    _currentExpression = _currentExpression[..^1];
-                }
-                else if (_currentExpression.EndsWith("("))
-                {
-                    // Если удаляем открывающую скобку, проверяем, не было ли перед ней корня
-                    if (_currentExpression.Length >= 2 && _currentExpression.EndsWith("√("))
-                    {
-                        _currentExpression = _currentExpression[..^2]; // убираем "√("
-                    }
-                    else
-                    {
-                        _currentExpression = _currentExpression[..^1]; // убираем "("
-                    }
                 }
                 else
                 {
@@ -362,13 +367,250 @@ namespace StudyMateProject.Views
 
             UpdateDisplay();
         }
+        #endregion
+
+        #region Scientific Functions
+        private void OnSinClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "sin(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "sin(";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnCosClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "cos(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "cos(";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnTanClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "tan(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "tan(";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnCotClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "cot(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "cot(";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnArcTanClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "atan(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "atan(";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnLnClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "ln(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "ln(";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnLogClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "log(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "log(";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnSquareClicked(object sender, EventArgs e)
+        {
+            // x² - возведение в квадрат последнего числа или результата
+            if (_justCalculated)
+            {
+                _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}²";
+                _justCalculated = false;
+            }
+            else if (!string.IsNullOrEmpty(_currentExpression))
+            {
+                // Применяем квадрат к последнему числу
+                if (_currentExpression.EndsWith(")"))
+                {
+                    // Если заканчивается закрывающей скобкой, добавляем степень ко всему выражению в скобках
+                    _currentExpression += "²";
+                }
+                else
+                {
+                    // Находим последнее число и добавляем к нему степень
+                    var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
+                    string lastPart = parts[^1].Trim();
+
+                    if (double.TryParse(lastPart, out _))
+                    {
+                        parts[^1] = lastPart + "²";
+                        _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
+                    }
+                    else
+                    {
+                        _currentExpression += "²";
+                    }
+                }
+            }
+            UpdateDisplay();
+        }
+
+        private void OnCubeClicked(object sender, EventArgs e)
+        {
+            // x³ - возведение в куб последнего числа или результата
+            if (_justCalculated)
+            {
+                _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}³";
+                _justCalculated = false;
+            }
+            else if (!string.IsNullOrEmpty(_currentExpression))
+            {
+                if (_currentExpression.EndsWith(")"))
+                {
+                    _currentExpression += "³";
+                }
+                else
+                {
+                    var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
+                    string lastPart = parts[^1].Trim();
+
+                    if (double.TryParse(lastPart, out _))
+                    {
+                        parts[^1] = lastPart + "³";
+                        _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
+                    }
+                    else
+                    {
+                        _currentExpression += "³";
+                    }
+                }
+            }
+            UpdateDisplay();
+        }
+
+        private void OnPowerClicked(object sender, EventArgs e)
+        {
+            // x^y - возведение в произвольную степень
+            if (_justCalculated)
+            {
+                _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + "^";
+                _justCalculated = false;
+            }
+            else if (!string.IsNullOrEmpty(_currentExpression) &&
+                     !_currentExpression.TrimEnd().EndsWith("^"))
+            {
+                _currentExpression += "^";
+            }
+            UpdateDisplay();
+        }
+
+        private void OnPiClicked(object sender, EventArgs e)
+        {
+            string piValue = _calculatorService.FormatResult(Math.PI);
+
+            if (_justCalculated)
+            {
+                _currentExpression = piValue;
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += piValue;
+            }
+            UpdateDisplay();
+        }
+
+        private void OnEClicked(object sender, EventArgs e)
+        {
+            string eValue = _calculatorService.FormatResult(Math.E);
+
+            if (_justCalculated)
+            {
+                _currentExpression = eValue;
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += eValue;
+            }
+            UpdateDisplay();
+        }
+        #endregion
+
+        #region Helper Methods
+        private int CountOpenParentheses()
+        {
+            int count = 0;
+            foreach (char c in _currentExpression)
+            {
+                if (c == '(') count++;
+            }
+            return count;
+        }
+
+        private int CountCloseParentheses()
+        {
+            int count = 0;
+            foreach (char c in _currentExpression)
+            {
+                if (c == ')') count++;
+            }
+            return count;
+        }
 
         private void UpdateDisplay()
         {
-            // Основной дисплей показывает текущее выражение
             DisplayLabel.Text = string.IsNullOrEmpty(_currentExpression) ? "0" : _currentExpression;
 
-            // Верхний дисплей показывает статус
             if (_justCalculated)
             {
                 ExpressionLabel.Text = "Результат";
@@ -388,5 +630,6 @@ namespace StudyMateProject.Views
             _justCalculated = false;
             _calculatorModel.Reset();
         }
+        #endregion
     }
 }
