@@ -5,8 +5,6 @@
         public AppShell()
         {
             InitializeComponent();
-
-            Routing.RegisterRoute(nameof(Views.DrawingPage), typeof(Views.DrawingPage));
         }
     }
 }
