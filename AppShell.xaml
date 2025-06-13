@@ -29,7 +29,7 @@
 
     <!-- Заголовок приложения в меню -->
     <Shell.FlyoutHeader>
-        <Grid BackgroundColor="#2E8B57" HeightRequest="200">
+        <Grid BackgroundColor="#800080" HeightRequest="200">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
@@ -67,14 +67,6 @@
             Title="Калькулятор"
             ContentTemplate="{DataTemplate views:CalculatorPage}"
             Route="calculator" />
-    </FlyoutItem>
-
-    <!-- Научный калькулятор -->
-    <FlyoutItem Title="Научный калькулятор" Icon="scientific.png">
-        <ShellContent 
-            Title="Научный калькулятор"
-            ContentTemplate="{DataTemplate views:ScientificCalculatorPage}"
-            Route="scientific" />
     </FlyoutItem>
 
     <!-- Подвал меню -->

@@ -12,6 +12,7 @@ namespace StudyMateProject.Views
         private string _currentExpression = "";
         private bool _justCalculated = false;
         private bool _isScientificMode = false;
+        private bool _isMatrixMode = false;
 
         public CalculatorPage()
         {
@@ -24,34 +25,26 @@ namespace StudyMateProject.Views
         #region Mode Switching
         private void OnToggleCalculatorModeClicked(object sender, EventArgs e)
         {
-            // Показываем меню выбора с анимацией
             CalculatorSelectorOverlay.IsVisible = true;
             CalculatorSelectorOverlay.FadeTo(1, 250, Easing.CubicOut);
         }
 
         private async void OnBasicCalculatorSelected(object sender, EventArgs e)
         {
-            // Анимация скрытия
             await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
             CalculatorSelectorOverlay.IsVisible = false;
-
-            // Переключаем на обычный калькулятор
             SwitchToBasicMode();
         }
 
         private async void OnScientificCalculatorSelected(object sender, EventArgs e)
         {
-            // Анимация скрытия
             await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
             CalculatorSelectorOverlay.IsVisible = false;
-
-            // Переключаем на научный калькулятор
             SwitchToScientificMode();
         }
 
         private async void OnCancelSelection(object sender, EventArgs e)
         {
-            // Просто скрываем меню с анимацией
             await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
             CalculatorSelectorOverlay.IsVisible = false;
         }
@@ -60,14 +53,34 @@ namespace StudyMateProject.Views
         {
             BasicCalculatorPanel.IsVisible = true;
             ScientificCalculatorPanel.IsVisible = false;
+            MatrixCalculatorPanel.IsVisible = false;
             _isScientificMode = false;
+            _isMatrixMode = false;
         }
 
         private void SwitchToScientificMode()
         {
             BasicCalculatorPanel.IsVisible = false;
             ScientificCalculatorPanel.IsVisible = true;
+            MatrixCalculatorPanel.IsVisible = false;
             _isScientificMode = true;
+            _isMatrixMode = false;
+        }
+
+        private async void OnMatrixCalculatorSelected(object sender, EventArgs e)
+        {
+            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+            CalculatorSelectorOverlay.IsVisible = false;
+            SwitchToMatrixMode();
+        }
+
+        private void SwitchToMatrixMode()
+        {
+            BasicCalculatorPanel.IsVisible = false;
+            ScientificCalculatorPanel.IsVisible = false;
+            MatrixCalculatorPanel.IsVisible = true;
+            _isScientificMode = false;
+            _isMatrixMode = true;
         }
         #endregion
 
@@ -360,28 +373,24 @@ namespace StudyMateProject.Views
                     _currentExpression.EndsWith("tan(") || _currentExpression.EndsWith("cot(") ||
                     _currentExpression.EndsWith("log("))
                 {
-                    _currentExpression = _currentExpression[..^4]; // убираем "func("
-                }
-                else if (_currentExpression.EndsWith("atan("))
-                {
-                    _currentExpression = _currentExpression[..^5]; // убираем "atan("
+                    _currentExpression = _currentExpression[..^4];
                 }
                 else if (_currentExpression.EndsWith("ln("))
                 {
-                    _currentExpression = _currentExpression[..^3]; // убираем "ln("
+                    _currentExpression = _currentExpression[..^3];
                 }
-                else if (_currentExpression.EndsWith("√("))
+                else if (_currentExpression.EndsWith("√(") || _currentExpression.EndsWith("∛("))
                 {
-                    _currentExpression = _currentExpression[..^2]; // убираем "√("
+                    _currentExpression = _currentExpression[..^2];
                 }
                 else if (_currentExpression.EndsWith(" + ") || _currentExpression.EndsWith(" − ") ||
                          _currentExpression.EndsWith(" × ") || _currentExpression.EndsWith(" ÷ "))
                 {
-                    _currentExpression = _currentExpression[..^3]; // убираем " op "
+                    _currentExpression = _currentExpression[..^3];
                 }
                 else
                 {
-                    _currentExpression = _currentExpression[..^1]; // убираем один символ
+                    _currentExpression = _currentExpression[..^1];
                 }
             }
 
@@ -390,107 +399,29 @@ namespace StudyMateProject.Views
         #endregion
 
         #region Scientific Functions
-        private void OnSinClicked(object sender, EventArgs e)
+
+        // Тригонометрические функции
+        private void OnScientificFunctionClicked(object sender, EventArgs e)
         {
+            if (sender is not Button button) return;
+            string function = button.Text;
+
             if (_justCalculated)
             {
-                _currentExpression = "sin(";
+                _currentExpression = $"{function}(";
                 _justCalculated = false;
             }
             else
             {
-                _currentExpression += "sin(";
+                _currentExpression += $"{function}(";
             }
+
             UpdateDisplay();
         }
 
-        private void OnCosClicked(object sender, EventArgs e)
-        {
-            if (_justCalculated)
-            {
-                _currentExpression = "cos(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "cos(";
-            }
-            UpdateDisplay();
-        }
-
-        private void OnTanClicked(object sender, EventArgs e)
-        {
-            if (_justCalculated)
-            {
-                _currentExpression = "tan(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "tan(";
-            }
-            UpdateDisplay();
-        }
-
-        private void OnCotClicked(object sender, EventArgs e)
-        {
-            if (_justCalculated)
-            {
-                _currentExpression = "cot(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "cot(";
-            }
-            UpdateDisplay();
-        }
-
-        private void OnArcTanClicked(object sender, EventArgs e)
-        {
-            if (_justCalculated)
-            {
-                _currentExpression = "atan(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "atan(";
-            }
-            UpdateDisplay();
-        }
-
-        private void OnLnClicked(object sender, EventArgs e)
-        {
-            if (_justCalculated)
-            {
-                _currentExpression = "ln(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "ln(";
-            }
-            UpdateDisplay();
-        }
-
-        private void OnLogClicked(object sender, EventArgs e)
-        {
-            if (_justCalculated)
-            {
-                _currentExpression = "log(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "log(";
-            }
-            UpdateDisplay();
-        }
-
+        // Степенные функции
         private void OnSquareClicked(object sender, EventArgs e)
         {
-            // x² - возведение в квадрат последнего числа или результата
             if (_justCalculated)
             {
                 _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}²";
@@ -498,19 +429,16 @@ namespace StudyMateProject.Views
             }
             else if (!string.IsNullOrEmpty(_currentExpression))
             {
-                // Применяем квадрат к последнему числу
                 if (_currentExpression.EndsWith(")"))
                 {
-                    // Если заканчивается закрывающей скобкой, добавляем степень ко всему выражению в скобках
                     _currentExpression += "²";
                 }
                 else
                 {
-                    // Находим последнее число и добавляем к нему степень
                     var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
                     string lastPart = parts[^1].Trim();
 
-                    if (double.TryParse(lastPart, out _))
+                    if (double.TryParse(lastPart, out _) || lastPart == "π" || lastPart == "e")
                     {
                         parts[^1] = lastPart + "²";
                         _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
@@ -526,7 +454,6 @@ namespace StudyMateProject.Views
 
         private void OnCubeClicked(object sender, EventArgs e)
         {
-            // x³ - возведение в куб последнего числа или результата
             if (_justCalculated)
             {
                 _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}³";
@@ -543,7 +470,7 @@ namespace StudyMateProject.Views
                     var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
                     string lastPart = parts[^1].Trim();
 
-                    if (double.TryParse(lastPart, out _))
+                    if (double.TryParse(lastPart, out _) || lastPart == "π" || lastPart == "e")
                     {
                         parts[^1] = lastPart + "³";
                         _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
@@ -557,9 +484,8 @@ namespace StudyMateProject.Views
             UpdateDisplay();
         }
 
-        private void OnPowerClicked(object sender, EventArgs e)
+        private void OnPowerYClicked(object sender, EventArgs e)
         {
-            // x^y - возведение в произвольную степень
             if (_justCalculated)
             {
                 _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + "^";
@@ -573,37 +499,64 @@ namespace StudyMateProject.Views
             UpdateDisplay();
         }
 
-        private void OnPiClicked(object sender, EventArgs e)
+        private void OnFactorialClicked(object sender, EventArgs e)
         {
-            string piValue = _calculatorService.FormatResult(Math.PI);
-
             if (_justCalculated)
             {
-                _currentExpression = piValue;
+                _currentExpression = "fact(";
                 _justCalculated = false;
             }
             else
             {
-                _currentExpression += piValue;
+                _currentExpression += "fact(";
+            }
+            UpdateDisplay();
+        }
+
+        // Корни
+        private void OnCubeRootClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "∛(";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "∛(";
+            }
+            UpdateDisplay();
+        }
+
+        // Константы
+        private void OnPiClicked(object sender, EventArgs e)
+        {
+            if (_justCalculated)
+            {
+                _currentExpression = "π";
+                _justCalculated = false;
+            }
+            else
+            {
+                _currentExpression += "π";
             }
             UpdateDisplay();
         }
 
         private void OnEClicked(object sender, EventArgs e)
         {
-            string eValue = _calculatorService.FormatResult(Math.E);
-
             if (_justCalculated)
             {
-                _currentExpression = eValue;
+                _currentExpression = "e";
                 _justCalculated = false;
             }
             else
             {
-                _currentExpression += eValue;
+                _currentExpression += "e";
             }
             UpdateDisplay();
         }
+
         #endregion
 
         #region Helper Methods

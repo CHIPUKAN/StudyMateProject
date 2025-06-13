@@ -53,7 +53,6 @@ namespace StudyMateProject
             // Основные страницы
             services.AddTransient<MainPage>();
             services.AddTransient<CalculatorPage>();
-            services.AddTransient<ScientificCalculatorPage>();
         }
     }
 }

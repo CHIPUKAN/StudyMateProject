@@ -17,12 +17,14 @@ namespace StudyMateProject.Services
                 // Подготавливаем выражение
                 expression = PrepareExpression(expression);
 
-                // Обрабатываем научные функции в правильном порядке
+                // Обрабатываем научные функции
                 expression = ProcessScientificFunctions(expression);
                 expression = ProcessSqrtFunction(expression);
+                expression = ProcessCubeRootFunction(expression);
+                expression = ProcessFactorialFunction(expression);
                 expression = ProcessPowerOperations(expression);
 
-                // Используем DataTable для вычисления
+                // Используем DataTable для вычисления базовых операций
                 var table = new DataTable();
                 var result = table.Compute(expression, null);
 
@@ -61,8 +63,8 @@ namespace StudyMateProject.Services
                 }
                 if (openParens != 0) return false;
 
-                // Проверяем на недопустимые символы (расширенный список для научных функций)
-                if (Regex.IsMatch(prepared, @"[^0-9+\-*/.() \^√²³qrtsincostalgnateEeGg]"))
+                // Проверяем на недопустимые символы
+                if (Regex.IsMatch(prepared, @"[^0-9+\-*/.() \^√²³sincostanlgbqrtfac]"))
                     return false;
 
                 // Проверяем окончания
@@ -112,6 +114,8 @@ namespace StudyMateProject.Services
             return string.IsNullOrEmpty(formatted) ? "0" : formatted;
         }
 
+        #region Basic Mathematical Functions
+
         public double CalculateSquareRoot(double value)
         {
             if (value < 0)
@@ -127,42 +131,41 @@ namespace StudyMateProject.Services
             return result;
         }
 
-        public double CalculateSin(double value, bool isRadianMode = true)
+        public double CalculateCubeRoot(double value)
         {
-            double radians = isRadianMode ? value : value * Math.PI / 180;
-            return Math.Sin(radians);
+            if (value < 0)
+                return -Math.Pow(-value, 1.0 / 3.0);
+            return Math.Pow(value, 1.0 / 3.0);
         }
 
-        public double CalculateCos(double value, bool isRadianMode = true)
+        public double CalculateFactorial(double value)
         {
-            double radians = isRadianMode ? value : value * Math.PI / 180;
-            return Math.Cos(radians);
+            if (value < 0 || value != Math.Floor(value))
+                throw new ArgumentException("Факториал определен только для неотрицательных целых чисел");
+
+            if (value > 170)
+                throw new ArgumentException("Слишком большое число для вычисления факториала");
+
+            double result = 1;
+            for (int i = 2; i <= value; i++)
+            {
+                result *= i;
+            }
+            return result;
         }
 
-        public double CalculateTan(double value, bool isRadianMode = true)
-        {
-            double radians = isRadianMode ? value : value * Math.PI / 180;
-            return Math.Tan(radians);
-        }
+        #endregion
 
-        public double CalculateNaturalLog(double value)
-        {
-            if (value <= 0)
-                throw new ArgumentException("Логарифм определен только для положительных чисел");
-            return Math.Log(value);
-        }
-
-        public double CalculateLog10(double value)
-        {
-            if (value <= 0)
-                throw new ArgumentException("Логарифм определен только для положительных чисел");
-            return Math.Log10(value);
-        }
+        #region Expression Processing
 
         private string PrepareExpression(string expression)
         {
             if (string.IsNullOrWhiteSpace(expression))
                 return "";
+
+            // Заменяем символы на числовые значения ТОЛЬКО при вычислении
+            expression = expression.Replace("π", Math.PI.ToString("G17", CultureInfo.InvariantCulture))
+                                 .Replace("e", Math.E.ToString("G17", CultureInfo.InvariantCulture));
 
             // Заменяем отображаемые символы на математические операторы
             expression = expression.Replace("×", "*")
@@ -180,10 +183,7 @@ namespace StudyMateProject.Services
 
         private string ProcessScientificFunctions(string expression)
         {
-            // Обрабатываем научные функции в порядке приоритета
-            // Сначала самые длинные названия, потом короткие
-
-            // Тригонометрические функции (работают в радианах)
+            // Обрабатываем тригонометрические функции (в радианах)
             expression = ProcessFunction(expression, "sin", x => Math.Sin(x));
             expression = ProcessFunction(expression, "cos", x => Math.Cos(x));
             expression = ProcessFunction(expression, "tan", x => Math.Tan(x));
@@ -191,18 +191,18 @@ namespace StudyMateProject.Services
                 double tanValue = Math.Tan(x);
                 if (Math.Abs(tanValue) < 1e-10)
                     throw new ArgumentException("Котангенс не определен для этого значения");
-                return 1.0 / tanValue; // котангенс = 1/тангенс
+                return 1.0 / tanValue;
             });
 
             // Логарифмические функции
             expression = ProcessFunction(expression, "ln", x => {
                 if (x <= 0) throw new ArgumentException("Логарифм определен только для положительных чисел");
-                return Math.Log(x); // натуральный логарифм
+                return Math.Log(x);
             });
 
             expression = ProcessFunction(expression, "log", x => {
                 if (x <= 0) throw new ArgumentException("Логарифм определен только для положительных чисел");
-                return Math.Log10(x); // десятичный логарифм
+                return Math.Log10(x);
             });
 
             return expression;
@@ -210,7 +210,6 @@ namespace StudyMateProject.Services
 
         private string ProcessFunction(string expression, string functionName, Func<double, double> function)
         {
-            // Обрабатываем функции с правильной балансировкой скобок
             int iterations = 0;
             while (expression.Contains($"{functionName}(") && iterations < 20)
             {
@@ -237,7 +236,7 @@ namespace StudyMateProject.Services
                     }
                 }
 
-                if (closeIndex == -1) break; // Нет закрывающей скобки
+                if (closeIndex == -1) break;
 
                 // Извлекаем выражение внутри функции
                 string innerExpression = expression.Substring(funcIndex + functionName.Length + 1,
@@ -247,13 +246,13 @@ namespace StudyMateProject.Services
                 {
                     double value;
 
-                    // Пробуем вычислить внутреннее выражение
+                    // Рекурсивно обрабатываем сложные выражения
                     if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
-                        innerExpression.Contains("tan") || innerExpression.Contains("log") ||
-                        innerExpression.Contains("ln") || innerExpression.Contains("√") ||
-                        innerExpression.Contains("^"))
+                        innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
+                        innerExpression.Contains("ln") || innerExpression.Contains("log") ||
+                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
+                        innerExpression.Contains("fact") || innerExpression.Contains("^"))
                     {
-                        // Рекурсивно обрабатываем сложное выражение
                         value = Calculate(innerExpression);
                     }
                     else
@@ -272,7 +271,6 @@ namespace StudyMateProject.Services
                 }
                 catch
                 {
-                    // Если не удалось вычислить, прерываем
                     break;
                 }
 
@@ -284,11 +282,9 @@ namespace StudyMateProject.Services
 
         private string ProcessSqrtFunction(string expression)
         {
-            // Обрабатываем функцию квадратного корня √(выражение) с учетом вложенных скобок
             int iterations = 0;
             while (expression.Contains("√(") && iterations < 20)
             {
-                // Ищем самое внутреннее выражение √(...)
                 int sqrtIndex = expression.LastIndexOf("√(");
                 if (sqrtIndex == -1) break;
 
@@ -313,18 +309,17 @@ namespace StudyMateProject.Services
 
                 if (closeIndex == -1) break;
 
-                // Извлекаем выражение внутри корня
                 string innerExpression = expression.Substring(sqrtIndex + 2, closeIndex - sqrtIndex - 2);
 
                 try
                 {
                     double value;
 
-                    // Рекурсивно вычисляем сложные выражения
                     if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
-                        innerExpression.Contains("tan") || innerExpression.Contains("log") ||
-                        innerExpression.Contains("ln") || innerExpression.Contains("√") ||
-                        innerExpression.Contains("^"))
+                        innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
+                        innerExpression.Contains("ln") || innerExpression.Contains("log") ||
+                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
+                        innerExpression.Contains("fact") || innerExpression.Contains("^"))
                     {
                         value = Calculate(innerExpression);
                     }
@@ -341,8 +336,139 @@ namespace StudyMateProject.Services
                     double sqrtResult = Math.Sqrt(value);
                     string resultStr = sqrtResult.ToString("G15", CultureInfo.InvariantCulture);
 
-                    // Заменяем √(выражение) на результат
                     expression = expression.Substring(0, sqrtIndex) + resultStr + expression.Substring(closeIndex + 1);
+                }
+                catch
+                {
+                    break;
+                }
+
+                iterations++;
+            }
+
+            return expression;
+        }
+
+        private string ProcessCubeRootFunction(string expression)
+        {
+            int iterations = 0;
+            while (expression.Contains("∛(") && iterations < 20)
+            {
+                int cbrtIndex = expression.LastIndexOf("∛(");
+                if (cbrtIndex == -1) break;
+
+                // Находим соответствующую закрывающую скобку
+                int openParens = 0;
+                int closeIndex = -1;
+
+                for (int i = cbrtIndex + 2; i < expression.Length; i++)
+                {
+                    if (expression[i] == '(')
+                        openParens++;
+                    else if (expression[i] == ')')
+                    {
+                        if (openParens == 0)
+                        {
+                            closeIndex = i;
+                            break;
+                        }
+                        openParens--;
+                    }
+                }
+
+                if (closeIndex == -1) break;
+
+                string innerExpression = expression.Substring(cbrtIndex + 2, closeIndex - cbrtIndex - 2);
+
+                try
+                {
+                    double value;
+
+                    if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
+                        innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
+                        innerExpression.Contains("ln") || innerExpression.Contains("log") ||
+                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
+                        innerExpression.Contains("fact") || innerExpression.Contains("^"))
+                    {
+                        value = Calculate(innerExpression);
+                    }
+                    else
+                    {
+                        var table = new DataTable();
+                        var innerResult = table.Compute(innerExpression, null);
+                        value = Convert.ToDouble(innerResult);
+                    }
+
+                    double cbrtResult = CalculateCubeRoot(value);
+                    string resultStr = cbrtResult.ToString("G15", CultureInfo.InvariantCulture);
+
+                    expression = expression.Substring(0, cbrtIndex) + resultStr + expression.Substring(closeIndex + 1);
+                }
+                catch
+                {
+                    break;
+                }
+
+                iterations++;
+            }
+
+            return expression;
+        }
+
+        private string ProcessFactorialFunction(string expression)
+        {
+            int iterations = 0;
+            while (expression.Contains("fact(") && iterations < 20)
+            {
+                int factIndex = expression.LastIndexOf("fact(");
+                if (factIndex == -1) break;
+
+                // Находим соответствующую закрывающую скобку
+                int openParens = 0;
+                int closeIndex = -1;
+
+                for (int i = factIndex + 5; i < expression.Length; i++)
+                {
+                    if (expression[i] == '(')
+                        openParens++;
+                    else if (expression[i] == ')')
+                    {
+                        if (openParens == 0)
+                        {
+                            closeIndex = i;
+                            break;
+                        }
+                        openParens--;
+                    }
+                }
+
+                if (closeIndex == -1) break;
+
+                string innerExpression = expression.Substring(factIndex + 5, closeIndex - factIndex - 5);
+
+                try
+                {
+                    double value;
+
+                    if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
+                        innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
+                        innerExpression.Contains("ln") || innerExpression.Contains("log") ||
+                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
+                        innerExpression.Contains("fact") || innerExpression.Contains("^"))
+                    {
+                        value = Calculate(innerExpression);
+                    }
+                    else
+                    {
+                        var table = new DataTable();
+                        var innerResult = table.Compute(innerExpression, null);
+                        value = Convert.ToDouble(innerResult);
+                    }
+
+                    double factResult = CalculateFactorial(value);
+                    string resultStr = factResult.ToString("G15", CultureInfo.InvariantCulture);
+
+                    expression = expression.Substring(0, factIndex) + resultStr + expression.Substring(closeIndex + 1);
                 }
                 catch
                 {
@@ -357,14 +483,14 @@ namespace StudyMateProject.Services
 
         private string ProcessPowerOperations(string expression)
         {
-            // Обрабатываем операции возведения в степень справа налево (правоассоциативность)
+            // Обрабатываем операции возведения в степень справа налево
             string pattern = @"(\d+(?:\.\d+)?(?:[Ee][+-]?\d+)?)\^(\d+(?:\.\d+)?(?:[Ee][+-]?\d+)?)";
 
             int iterations = 0;
             while (Regex.IsMatch(expression, pattern) && iterations < 20)
             {
                 var matches = Regex.Matches(expression, pattern);
-                var lastMatch = matches[matches.Count - 1]; // Обрабатываем справа налево
+                var lastMatch = matches[matches.Count - 1];
 
                 string baseValue = lastMatch.Groups[1].Value;
                 string exponent = lastMatch.Groups[2].Value;
@@ -397,5 +523,7 @@ namespace StudyMateProject.Services
 
             return expression;
         }
+
+        #endregion
     }
 }

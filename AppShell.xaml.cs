@@ -17,7 +17,6 @@ namespace StudyMateProject
             // Основные страницы
             Routing.RegisterRoute("main", typeof(MainPage));
             Routing.RegisterRoute("calculator", typeof(CalculatorPage));
-            Routing.RegisterRoute("scientific", typeof(ScientificCalculatorPage));
         }
     }
 }
