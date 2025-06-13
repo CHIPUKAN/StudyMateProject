@@ -3,6 +3,10 @@ using StudyMateTest.Services;
 using StudyMateTest.Services.NotificationServices;
 using StudyMateTest.Views;
 
+using SkiaSharp.Views.Maui.Controls.Hosting;
+using StudyMateTest.Services.DrawingServices;
+using StudyMateTest.Services.TextEditorServices;
+
 namespace StudyMateTest
 {
     public static class MauiProgram
@@ -17,7 +21,6 @@ namespace StudyMateTest
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
-
             // Регистрируем сервисы локального хранилища
             builder.Services.AddSingleton<ILocalStorageService, LocalStorageService>();
 
@@ -44,6 +47,8 @@ namespace StudyMateTest
             // Регистрируем MainPage если необходимо
             builder.Services.AddTransient<MainPage>();
 
+            builder.Services.AddSingleton<IDrawingService, DrawingService>();
+            builder.Services.AddSingleton<ITextEditorService, TextEditorService>();
 #if DEBUG
             builder.Logging.AddDebug();
             // Включаем детальное логирование для отладки
