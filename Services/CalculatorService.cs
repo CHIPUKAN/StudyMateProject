@@ -12,35 +12,38 @@ namespace StudyMateProject.Services
             try
             {
                 if (string.IsNullOrWhiteSpace(expression))
-                    return 0;
+                    throw new InvalidOperationException("Пустое выражение");
 
                 // Подготавливаем выражение
                 expression = PrepareExpression(expression);
 
-                // Обрабатываем научные функции
+                // Обрабатываем научные функции (включая cbrt!)
                 expression = ProcessScientificFunctions(expression);
                 expression = ProcessSqrtFunction(expression);
-                expression = ProcessCubeRootFunction(expression);
                 expression = ProcessFactorialFunction(expression);
                 expression = ProcessPowerOperations(expression);
+
+                // Проверяем на ошибки обработки
+                if (expression.Contains("ERROR_VALUE"))
+                    return double.NaN;
 
                 // Используем DataTable для вычисления базовых операций
                 var table = new DataTable();
                 var result = table.Compute(expression, null);
 
                 if (result == DBNull.Value)
-                    throw new InvalidOperationException("Невозможно вычислить выражение");
+                    return double.NaN;
 
                 double calculatedResult = Convert.ToDouble(result);
 
                 if (double.IsNaN(calculatedResult) || double.IsInfinity(calculatedResult))
-                    throw new InvalidOperationException("Результат вычисления некорректен");
+                    return double.NaN;
 
                 return calculatedResult;
             }
-            catch (Exception ex)
+            catch
             {
-                throw new InvalidOperationException($"Ошибка вычисления: {ex.Message}");
+                return double.NaN;
             }
         }
 
@@ -86,11 +89,11 @@ namespace StudyMateProject.Services
         public string FormatResult(double result)
         {
             if (double.IsNaN(result))
-                return "NaN";
+                return "Ошибка";
             if (double.IsPositiveInfinity(result))
-                return "∞";
+                return "Ошибка";
             if (double.IsNegativeInfinity(result))
-                return "-∞";
+                return "Ошибка";
             if (result == 0)
                 return "0";
 
@@ -119,7 +122,7 @@ namespace StudyMateProject.Services
         public double CalculateSquareRoot(double value)
         {
             if (value < 0)
-                throw new ArgumentException("Нельзя извлечь квадратный корень из отрицательного числа");
+                return double.NaN;
             return Math.Sqrt(value);
         }
 
@@ -127,29 +130,49 @@ namespace StudyMateProject.Services
         {
             var result = Math.Pow(baseValue, exponent);
             if (double.IsNaN(result) || double.IsInfinity(result))
-                throw new InvalidOperationException("Результат возведения в степень некорректен");
+                return double.NaN;
             return result;
         }
 
         public double CalculateCubeRoot(double value)
         {
-            if (value < 0)
-                return -Math.Pow(-value, 1.0 / 3.0);
-            return Math.Pow(value, 1.0 / 3.0);
+            try
+            {
+                if (value == 0)
+                    return 0;
+
+                if (value > 0)
+                {
+                    return Math.Pow(value, 1.0 / 3.0);
+                }
+                else
+                {
+                    // Для отрицательных чисел: ∛(-8) = -∛(8) = -2
+                    return -Math.Pow(-value, 1.0 / 3.0);
+                }
+            }
+            catch
+            {
+                return double.NaN;
+            }
         }
 
         public double CalculateFactorial(double value)
         {
-            if (value < 0 || value != Math.Floor(value))
-                throw new ArgumentException("Факториал определен только для неотрицательных целых чисел");
+            // Проверки на все виды ошибок
+            if (value < 0) return double.NaN; // Отрицательное число
+            if (value != Math.Floor(value)) return double.NaN; // Не целое число
+            if (value > 170) return double.NaN; // Слишком большое число
 
-            if (value > 170)
-                throw new ArgumentException("Слишком большое число для вычисления факториала");
+            if (value == 0 || value == 1)
+                return 1;
 
             double result = 1;
             for (int i = 2; i <= value; i++)
             {
                 result *= i;
+                if (double.IsInfinity(result))
+                    return double.NaN;
             }
             return result;
         }
@@ -162,6 +185,9 @@ namespace StudyMateProject.Services
         {
             if (string.IsNullOrWhiteSpace(expression))
                 return "";
+
+            // ЗАМЕНЯЕМ ∛( на cbrt( - делаем кубический корень обычной функцией
+            expression = expression.Replace("∛(", "cbrt(");
 
             // Заменяем символы на числовые значения ТОЛЬКО при вычислении
             expression = expression.Replace("π", Math.PI.ToString("G17", CultureInfo.InvariantCulture))
@@ -183,29 +209,126 @@ namespace StudyMateProject.Services
 
         private string ProcessScientificFunctions(string expression)
         {
-            // Обрабатываем тригонометрические функции (в радианах)
-            expression = ProcessFunction(expression, "sin", x => Math.Sin(x));
-            expression = ProcessFunction(expression, "cos", x => Math.Cos(x));
-            expression = ProcessFunction(expression, "tan", x => Math.Tan(x));
-            expression = ProcessFunction(expression, "cot", x => {
-                double tanValue = Math.Tan(x);
-                if (Math.Abs(tanValue) < 1e-10)
-                    throw new ArgumentException("Котангенс не определен для этого значения");
-                return 1.0 / tanValue;
-            });
+            try
+            {
+                // Обрабатываем тригонометрические функции с ПРАВИЛЬНЫМИ проверками
+                expression = ProcessFunction(expression, "sin", x => {
+                    double result = Math.Sin(x);
+                    if (double.IsNaN(result) || double.IsInfinity(result))
+                        return double.NaN;
+                    return result;
+                });
 
-            // Логарифмические функции
-            expression = ProcessFunction(expression, "ln", x => {
-                if (x <= 0) throw new ArgumentException("Логарифм определен только для положительных чисел");
-                return Math.Log(x);
-            });
+                expression = ProcessFunction(expression, "cos", x => {
+                    double result = Math.Cos(x);
+                    if (double.IsNaN(result) || double.IsInfinity(result))
+                        return double.NaN;
+                    return result;
+                });
 
-            expression = ProcessFunction(expression, "log", x => {
-                if (x <= 0) throw new ArgumentException("Логарифм определен только для положительных чисел");
-                return Math.Log10(x);
-            });
+                // TAN - ПРОВЕРЯЕМ НА tan(π/2), tan(3π/2) и т.д.
+                expression = ProcessFunction(expression, "tan", x => {
+                    // Нормализуем угол к диапазону [0, 2π]
+                    double normalizedX = ((x % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
 
-            return expression;
+                    // Проверяем проблемные точки: π/2, 3π/2
+                    double piHalf = Math.PI / 2;
+                    double threePiHalf = 3 * Math.PI / 2;
+
+                    if (Math.Abs(normalizedX - piHalf) < 1e-10 ||
+                        Math.Abs(normalizedX - threePiHalf) < 1e-10)
+                    {
+                        return double.NaN; // tan не определен
+                    }
+
+                    double result = Math.Tan(x);
+
+                    // Дополнительная проверка на очень большие значения (близко к π/2)
+                    if (Math.Abs(result) > 1e15)
+                        return double.NaN;
+
+                    if (double.IsNaN(result) || double.IsInfinity(result))
+                        return double.NaN;
+
+                    return result;
+                });
+
+                // COT - ПРОВЕРЯЕМ НА cot(0), cot(π), cot(2π) И cot(π/2)
+                expression = ProcessFunction(expression, "cot", x => {
+                    // Нормализуем угол к диапазону [0, 2π]
+                    double normalizedX = ((x % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+
+                    // Проверяем проблемные точки: 0, π, 2π (где sin=0)
+                    if (Math.Abs(normalizedX) < 1e-10 ||
+                        Math.Abs(normalizedX - Math.PI) < 1e-10 ||
+                        Math.Abs(normalizedX - 2 * Math.PI) < 1e-10)
+                    {
+                        return double.NaN; // cot не определен когда sin=0
+                    }
+
+                    // Особый случай: cot(π/2) = 0, cot(3π/2) = 0
+                    double piHalf = Math.PI / 2;
+                    double threePiHalf = 3 * Math.PI / 2;
+
+                    if (Math.Abs(normalizedX - piHalf) < 1e-10 ||
+                        Math.Abs(normalizedX - threePiHalf) < 1e-10)
+                    {
+                        return 0; // cot(π/2) = 0
+                    }
+
+                    // Вычисляем через cos/sin для точности
+                    double sinValue = Math.Sin(x);
+                    double cosValue = Math.Cos(x);
+
+                    if (Math.Abs(sinValue) < 1e-15)
+                        return double.NaN;
+
+                    double result = cosValue / sinValue;
+
+                    if (double.IsNaN(result) || double.IsInfinity(result))
+                        return double.NaN;
+
+                    return result;
+                });
+
+                // Логарифмические функции
+                expression = ProcessFunction(expression, "ln", x => {
+                    if (x <= 0) return double.NaN;
+                    double result = Math.Log(x);
+                    if (double.IsNaN(result) || double.IsInfinity(result))
+                        return double.NaN;
+                    return result;
+                });
+
+                expression = ProcessFunction(expression, "log", x => {
+                    if (x <= 0) return double.NaN;
+                    double result = Math.Log10(x);
+                    if (double.IsNaN(result) || double.IsInfinity(result))
+                        return double.NaN;
+                    return result;
+                });
+
+                // КУБИЧЕСКИЙ КОРЕНЬ КАК ОБЫЧНАЯ ФУНКЦИЯ!
+                expression = ProcessFunction(expression, "cbrt", x => {
+                    if (x == 0) return 0;
+
+                    if (x > 0)
+                    {
+                        return Math.Pow(x, 1.0 / 3.0);
+                    }
+                    else
+                    {
+                        // Для отрицательных: ∛(-8) = -∛(8) = -2
+                        return -Math.Pow(-x, 1.0 / 3.0);
+                    }
+                });
+
+                return expression;
+            }
+            catch
+            {
+                return expression;
+            }
         }
 
         private string ProcessFunction(string expression, string functionName, Func<double, double> function)
@@ -250,7 +373,7 @@ namespace StudyMateProject.Services
                     if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
                         innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
                         innerExpression.Contains("ln") || innerExpression.Contains("log") ||
-                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
+                        innerExpression.Contains("√") || innerExpression.Contains("cbrt") ||
                         innerExpression.Contains("fact") || innerExpression.Contains("^"))
                     {
                         value = Calculate(innerExpression);
@@ -263,7 +386,22 @@ namespace StudyMateProject.Services
                         value = Convert.ToDouble(innerResult);
                     }
 
+                    // Проверяем входное значение
+                    if (double.IsNaN(value) || double.IsInfinity(value))
+                    {
+                        expression = expression.Substring(0, funcIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
+                        break;
+                    }
+
                     double result = function(value);
+
+                    // Проверяем результат функции
+                    if (double.IsNaN(result) || double.IsInfinity(result))
+                    {
+                        expression = expression.Substring(0, funcIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
+                        break;
+                    }
+
                     string resultStr = result.ToString("G15", CultureInfo.InvariantCulture);
 
                     // Заменяем функция(выражение) на результат
@@ -271,6 +409,7 @@ namespace StudyMateProject.Services
                 }
                 catch
                 {
+                    expression = expression.Substring(0, funcIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
                     break;
                 }
 
@@ -318,7 +457,7 @@ namespace StudyMateProject.Services
                     if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
                         innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
                         innerExpression.Contains("ln") || innerExpression.Contains("log") ||
-                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
+                        innerExpression.Contains("√") || innerExpression.Contains("cbrt") ||
                         innerExpression.Contains("fact") || innerExpression.Contains("^"))
                     {
                         value = Calculate(innerExpression);
@@ -330,82 +469,28 @@ namespace StudyMateProject.Services
                         value = Convert.ToDouble(innerResult);
                     }
 
-                    if (value < 0)
-                        throw new ArgumentException("Нельзя извлечь корень из отрицательного числа");
+                    // ПРОВЕРКА НА КОРЕНЬ ИЗ ОТРИЦАТЕЛЬНОГО
+                    if (value < 0 || double.IsNaN(value) || double.IsInfinity(value))
+                    {
+                        expression = expression.Substring(0, sqrtIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
+                        break;
+                    }
 
                     double sqrtResult = Math.Sqrt(value);
+
+                    if (double.IsNaN(sqrtResult) || double.IsInfinity(sqrtResult))
+                    {
+                        expression = expression.Substring(0, sqrtIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
+                        break;
+                    }
+
                     string resultStr = sqrtResult.ToString("G15", CultureInfo.InvariantCulture);
 
                     expression = expression.Substring(0, sqrtIndex) + resultStr + expression.Substring(closeIndex + 1);
                 }
                 catch
                 {
-                    break;
-                }
-
-                iterations++;
-            }
-
-            return expression;
-        }
-
-        private string ProcessCubeRootFunction(string expression)
-        {
-            int iterations = 0;
-            while (expression.Contains("∛(") && iterations < 20)
-            {
-                int cbrtIndex = expression.LastIndexOf("∛(");
-                if (cbrtIndex == -1) break;
-
-                // Находим соответствующую закрывающую скобку
-                int openParens = 0;
-                int closeIndex = -1;
-
-                for (int i = cbrtIndex + 2; i < expression.Length; i++)
-                {
-                    if (expression[i] == '(')
-                        openParens++;
-                    else if (expression[i] == ')')
-                    {
-                        if (openParens == 0)
-                        {
-                            closeIndex = i;
-                            break;
-                        }
-                        openParens--;
-                    }
-                }
-
-                if (closeIndex == -1) break;
-
-                string innerExpression = expression.Substring(cbrtIndex + 2, closeIndex - cbrtIndex - 2);
-
-                try
-                {
-                    double value;
-
-                    if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
-                        innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
-                        innerExpression.Contains("ln") || innerExpression.Contains("log") ||
-                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
-                        innerExpression.Contains("fact") || innerExpression.Contains("^"))
-                    {
-                        value = Calculate(innerExpression);
-                    }
-                    else
-                    {
-                        var table = new DataTable();
-                        var innerResult = table.Compute(innerExpression, null);
-                        value = Convert.ToDouble(innerResult);
-                    }
-
-                    double cbrtResult = CalculateCubeRoot(value);
-                    string resultStr = cbrtResult.ToString("G15", CultureInfo.InvariantCulture);
-
-                    expression = expression.Substring(0, cbrtIndex) + resultStr + expression.Substring(closeIndex + 1);
-                }
-                catch
-                {
+                    expression = expression.Substring(0, sqrtIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
                     break;
                 }
 
@@ -453,7 +538,7 @@ namespace StudyMateProject.Services
                     if (innerExpression.Contains("sin") || innerExpression.Contains("cos") ||
                         innerExpression.Contains("tan") || innerExpression.Contains("cot") ||
                         innerExpression.Contains("ln") || innerExpression.Contains("log") ||
-                        innerExpression.Contains("√") || innerExpression.Contains("∛") ||
+                        innerExpression.Contains("√") || innerExpression.Contains("cbrt") ||
                         innerExpression.Contains("fact") || innerExpression.Contains("^"))
                     {
                         value = Calculate(innerExpression);
@@ -465,13 +550,28 @@ namespace StudyMateProject.Services
                         value = Convert.ToDouble(innerResult);
                     }
 
+                    if (double.IsNaN(value) || double.IsInfinity(value))
+                    {
+                        expression = expression.Substring(0, factIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
+                        break;
+                    }
+
                     double factResult = CalculateFactorial(value);
+
+                    // ПРОВЕРЯЕМ РЕЗУЛЬТАТ ФАКТОРИАЛА
+                    if (double.IsNaN(factResult) || double.IsInfinity(factResult))
+                    {
+                        expression = expression.Substring(0, factIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
+                        break;
+                    }
+
                     string resultStr = factResult.ToString("G15", CultureInfo.InvariantCulture);
 
                     expression = expression.Substring(0, factIndex) + resultStr + expression.Substring(closeIndex + 1);
                 }
                 catch
                 {
+                    expression = expression.Substring(0, factIndex) + "ERROR_VALUE" + expression.Substring(closeIndex + 1);
                     break;
                 }
 
@@ -501,8 +601,14 @@ namespace StudyMateProject.Services
                     try
                     {
                         double result = Math.Pow(baseNum, expNum);
+
+                        // ПРОВЕРЯЕМ РЕЗУЛЬТАТ СТЕПЕНИ НА ВСЕ ВИДЫ ОШИБОК
                         if (double.IsNaN(result) || double.IsInfinity(result))
-                            throw new InvalidOperationException("Результат степени некорректен");
+                        {
+                            expression = expression.Substring(0, lastMatch.Index) + "ERROR_VALUE" +
+                                       expression.Substring(lastMatch.Index + lastMatch.Length);
+                            break;
+                        }
 
                         string resultStr = result.ToString("G15", CultureInfo.InvariantCulture);
                         expression = expression.Substring(0, lastMatch.Index) + resultStr +
@@ -510,6 +616,8 @@ namespace StudyMateProject.Services
                     }
                     catch
                     {
+                        expression = expression.Substring(0, lastMatch.Index) + "ERROR_VALUE" +
+                                   expression.Substring(lastMatch.Index + lastMatch.Length);
                         break;
                     }
                 }

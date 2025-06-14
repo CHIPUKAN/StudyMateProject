@@ -19,159 +19,234 @@ namespace StudyMateProject.Views
             InitializeComponent();
             _calculatorService = new CalculatorService();
             _calculatorModel = new CalculatorModel();
+
+            // Подписываемся на изменение размера Label
+            DisplayLabel.SizeChanged += OnDisplayLabelSizeChanged;
+
             UpdateDisplay();
+        }
+
+        private void OnDisplayLabelSizeChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                // Прокручиваем в конец при изменении размера
+                Dispatcher.Dispatch(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(50);
+                        await DisplayScrollView.ScrollToAsync(DisplayLabel, ScrollToPosition.End, false);
+                    }
+                    catch { /* Игнорируем ошибки прокрутки */ }
+                });
+            }
+            catch { /* Игнорируем все ошибки */ }
         }
 
         #region Mode Switching
         private void OnToggleCalculatorModeClicked(object sender, EventArgs e)
         {
-            CalculatorSelectorOverlay.IsVisible = true;
-            CalculatorSelectorOverlay.FadeTo(1, 250, Easing.CubicOut);
+            try
+            {
+                CalculatorSelectorOverlay.IsVisible = true;
+                CalculatorSelectorOverlay.FadeTo(1, 250, Easing.CubicOut);
+            }
+            catch { /* Игнорируем ошибки */ }
         }
 
         private async void OnBasicCalculatorSelected(object sender, EventArgs e)
         {
-            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
-            CalculatorSelectorOverlay.IsVisible = false;
-            SwitchToBasicMode();
+            try
+            {
+                await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+                CalculatorSelectorOverlay.IsVisible = false;
+                SwitchToBasicMode();
+            }
+            catch { /* Игнорируем ошибки */ }
         }
 
         private async void OnScientificCalculatorSelected(object sender, EventArgs e)
         {
-            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
-            CalculatorSelectorOverlay.IsVisible = false;
-            SwitchToScientificMode();
+            try
+            {
+                await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+                CalculatorSelectorOverlay.IsVisible = false;
+                SwitchToScientificMode();
+            }
+            catch { /* Игнорируем ошибки */ }
         }
 
         private async void OnCancelSelection(object sender, EventArgs e)
         {
-            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
-            CalculatorSelectorOverlay.IsVisible = false;
+            try
+            {
+                await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+                CalculatorSelectorOverlay.IsVisible = false;
+            }
+            catch { /* Игнорируем ошибки */ }
         }
 
         private void SwitchToBasicMode()
         {
-            BasicCalculatorPanel.IsVisible = true;
-            ScientificCalculatorPanel.IsVisible = false;
-            MatrixCalculatorPanel.IsVisible = false;
-            _isScientificMode = false;
-            _isMatrixMode = false;
+            try
+            {
+                BasicCalculatorPanel.IsVisible = true;
+                ScientificCalculatorPanel.IsVisible = false;
+                MatrixCalculatorPanel.IsVisible = false;
+                _isScientificMode = false;
+                _isMatrixMode = false;
+            }
+            catch { /* Игнорируем ошибки */ }
         }
 
         private void SwitchToScientificMode()
         {
-            BasicCalculatorPanel.IsVisible = false;
-            ScientificCalculatorPanel.IsVisible = true;
-            MatrixCalculatorPanel.IsVisible = false;
-            _isScientificMode = true;
-            _isMatrixMode = false;
+            try
+            {
+                BasicCalculatorPanel.IsVisible = false;
+                ScientificCalculatorPanel.IsVisible = true;
+                MatrixCalculatorPanel.IsVisible = false;
+                _isScientificMode = true;
+                _isMatrixMode = false;
+            }
+            catch { /* Игнорируем ошибки */ }
         }
 
         private async void OnMatrixCalculatorSelected(object sender, EventArgs e)
         {
-            await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
-            CalculatorSelectorOverlay.IsVisible = false;
-            SwitchToMatrixMode();
+            try
+            {
+                await CalculatorSelectorOverlay.FadeTo(0, 200, Easing.CubicIn);
+                CalculatorSelectorOverlay.IsVisible = false;
+                SwitchToMatrixMode();
+            }
+            catch { /* Игнорируем ошибки */ }
         }
 
         private void SwitchToMatrixMode()
         {
-            BasicCalculatorPanel.IsVisible = false;
-            ScientificCalculatorPanel.IsVisible = false;
-            MatrixCalculatorPanel.IsVisible = true;
-            _isScientificMode = false;
-            _isMatrixMode = true;
+            try
+            {
+                BasicCalculatorPanel.IsVisible = false;
+                ScientificCalculatorPanel.IsVisible = false;
+                MatrixCalculatorPanel.IsVisible = true;
+                _isScientificMode = false;
+                _isMatrixMode = true;
+            }
+            catch { /* Игнорируем ошибки */ }
         }
         #endregion
 
         #region Basic Operations
         private void OnNumberClicked(object sender, EventArgs e)
         {
-            if (sender is not Button button) return;
-            string number = button.Text;
-
-            if (_justCalculated)
+            try
             {
-                _currentExpression = number;
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += number;
-            }
+                if (sender is not Button button) return;
+                string number = button.Text;
 
-            UpdateDisplay();
+                if (_justCalculated)
+                {
+                    _currentExpression = number;
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += number;
+                }
+
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnOperatorClicked(object sender, EventArgs e)
         {
-            if (sender is not Button button) return;
-            string operatorSymbol = button.Text;
+            try
+            {
+                if (sender is not Button button) return;
+                string operatorSymbol = button.Text;
 
-            string mathOperator = operatorSymbol switch
-            {
-                "÷" => " ÷ ",
-                "×" => " × ",
-                "−" => " − ",
-                "+" => " + ",
-                _ => " " + operatorSymbol + " "
-            };
-
-            if (_justCalculated)
-            {
-                _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + mathOperator;
-                _justCalculated = false;
-            }
-            else if (!string.IsNullOrEmpty(_currentExpression))
-            {
-                if (_currentExpression.TrimEnd().EndsWith(" "))
+                string mathOperator = operatorSymbol switch
                 {
-                    var trimmed = _currentExpression.TrimEnd();
-                    var lastSpaceIndex = trimmed.LastIndexOf(' ');
-                    if (lastSpaceIndex > 0)
+                    "÷" => " ÷ ",
+                    "×" => " × ",
+                    "−" => " − ",
+                    "+" => " + ",
+                    _ => " " + operatorSymbol + " "
+                };
+
+                if (_justCalculated)
+                {
+                    _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + mathOperator;
+                    _justCalculated = false;
+                }
+                else if (!string.IsNullOrEmpty(_currentExpression))
+                {
+                    if (_currentExpression.TrimEnd().EndsWith(" "))
                     {
-                        _currentExpression = trimmed.Substring(0, lastSpaceIndex) + mathOperator;
+                        var trimmed = _currentExpression.TrimEnd();
+                        var lastSpaceIndex = trimmed.LastIndexOf(' ');
+                        if (lastSpaceIndex > 0)
+                        {
+                            _currentExpression = trimmed.Substring(0, lastSpaceIndex) + mathOperator;
+                        }
+                    }
+                    else
+                    {
+                        _currentExpression += mathOperator;
                     }
                 }
-                else
+                else if (_calculatorModel.LastResult != 0)
                 {
-                    _currentExpression += mathOperator;
+                    _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + mathOperator;
                 }
-            }
-            else if (_calculatorModel.LastResult != 0)
-            {
-                _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + mathOperator;
-            }
 
-            UpdateDisplay();
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnDecimalClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = "0.";
-                _justCalculated = false;
-            }
-            else
-            {
-                var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
-                string lastPart = parts[^1].Trim();
-
-                if (!lastPart.Contains("."))
+                if (_justCalculated)
                 {
-                    if (string.IsNullOrEmpty(lastPart) || lastPart.EndsWith("("))
+                    _currentExpression = "0.";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
+                    string lastPart = parts[^1].Trim();
+
+                    if (!lastPart.Contains("."))
                     {
-                        _currentExpression += "0.";
-                    }
-                    else
-                    {
-                        _currentExpression += ".";
+                        if (string.IsNullOrEmpty(lastPart) || lastPart.EndsWith("("))
+                        {
+                            _currentExpression += "0.";
+                        }
+                        else
+                        {
+                            _currentExpression += ".";
+                        }
                     }
                 }
-            }
 
-            UpdateDisplay();
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnPercentClicked(object sender, EventArgs e)
@@ -208,9 +283,9 @@ namespace StudyMateProject.Views
 
                 UpdateDisplay();
             }
-            catch (Exception ex)
+            catch
             {
-                ShowError($"Ошибка процентов: {ex.Message}");
+                ShowError();
             }
         }
 
@@ -240,11 +315,19 @@ namespace StudyMateProject.Views
 
                 if (!_calculatorService.IsValidExpression(expression))
                 {
-                    ShowError("Некорректное выражение");
+                    ShowError();
                     return;
                 }
 
                 double result = _calculatorService.Calculate(expression);
+
+                // НОВАЯ ПРОВЕРКА НА ОШИБКИ
+                if (double.IsNaN(result) || double.IsInfinity(result))
+                {
+                    ShowError();
+                    return;
+                }
+
                 string formattedResult = _calculatorService.FormatResult(result);
 
                 string historyEntry = $"{_currentExpression.Trim()} = {formattedResult}";
@@ -256,145 +339,187 @@ namespace StudyMateProject.Views
 
                 UpdateDisplay();
             }
-            catch (Exception ex)
+            catch
             {
-                ShowError($"Ошибка вычисления: {ex.Message}");
+                ShowError();
             }
         }
 
         private void OnSquareRootClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = "√(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "√(";
-            }
+                if (_justCalculated)
+                {
+                    _currentExpression = "√(";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += "√(";
+                }
 
-            UpdateDisplay();
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnOpenParenthesisClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = "(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += "(";
-            }
+                if (_justCalculated)
+                {
+                    _currentExpression = "(";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += "(";
+                }
 
-            UpdateDisplay();
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnCloseParenthesisClicked(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(_currentExpression) &&
-                !_currentExpression.TrimEnd().EndsWith(" ") &&
-                !_currentExpression.EndsWith("(") &&
-                CountOpenParentheses() > CountCloseParentheses())
+            try
             {
-                _currentExpression += ")";
-                UpdateDisplay();
+                if (!string.IsNullOrEmpty(_currentExpression) &&
+                    !_currentExpression.TrimEnd().EndsWith(" ") &&
+                    !_currentExpression.EndsWith("(") &&
+                    CountOpenParentheses() > CountCloseParentheses())
+                {
+                    _currentExpression += ")";
+                    UpdateDisplay();
+                }
+            }
+            catch
+            {
+                ShowError();
             }
         }
 
         private void OnClearClicked(object sender, EventArgs e)
         {
-            _currentExpression = "";
-            _justCalculated = false;
-            _calculatorModel.Reset();
-            UpdateDisplay();
+            try
+            {
+                _currentExpression = "";
+                _justCalculated = false;
+                _calculatorModel.Reset();
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnClearEntryClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                OnClearClicked(sender, e);
-            }
-            else
-            {
-                if (_currentExpression.TrimEnd().EndsWith(" "))
+                if (_justCalculated)
                 {
-                    var trimmed = _currentExpression.TrimEnd();
-                    var lastSpaceIndex = trimmed.LastIndexOf(' ');
-                    if (lastSpaceIndex > 0)
-                    {
-                        _currentExpression = trimmed.Substring(0, lastSpaceIndex + 1);
-                    }
-                    else
-                    {
-                        _currentExpression = "";
-                    }
+                    OnClearClicked(sender, e);
                 }
                 else
                 {
-                    var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
-                    if (parts.Length > 1)
+                    if (_currentExpression.TrimEnd().EndsWith(" "))
                     {
-                        parts[^1] = "";
-                        _currentExpression = string.Join(" ", parts);
-                        _currentExpression = _currentExpression.TrimEnd() + " ";
+                        var trimmed = _currentExpression.TrimEnd();
+                        var lastSpaceIndex = trimmed.LastIndexOf(' ');
+                        if (lastSpaceIndex > 0)
+                        {
+                            _currentExpression = trimmed.Substring(0, lastSpaceIndex + 1);
+                        }
+                        else
+                        {
+                            _currentExpression = "";
+                        }
                     }
                     else
                     {
-                        _currentExpression = "";
+                        var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
+                        if (parts.Length > 1)
+                        {
+                            parts[^1] = "";
+                            _currentExpression = string.Join(" ", parts);
+                            _currentExpression = _currentExpression.TrimEnd() + " ";
+                        }
+                        else
+                        {
+                            _currentExpression = "";
+                        }
                     }
-                }
 
-                UpdateDisplay();
+                    UpdateDisplay();
+                }
+            }
+            catch
+            {
+                ShowError();
             }
         }
 
         private void OnBackspaceClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _justCalculated = false;
-                if (_currentExpression.Length > 1)
+                if (_justCalculated)
                 {
-                    _currentExpression = _currentExpression[..^1];
+                    _justCalculated = false;
+                    if (_currentExpression.Length > 1)
+                    {
+                        _currentExpression = _currentExpression[..^1];
+                    }
+                    else
+                    {
+                        _currentExpression = "";
+                    }
                 }
-                else
+                else if (!string.IsNullOrEmpty(_currentExpression))
                 {
-                    _currentExpression = "";
+                    // Умное удаление для научных функций
+                    if (_currentExpression.EndsWith("sin(") || _currentExpression.EndsWith("cos(") ||
+                        _currentExpression.EndsWith("tan(") || _currentExpression.EndsWith("cot(") ||
+                        _currentExpression.EndsWith("log("))
+                    {
+                        _currentExpression = _currentExpression[..^4];
+                    }
+                    else if (_currentExpression.EndsWith("ln("))
+                    {
+                        _currentExpression = _currentExpression[..^3];
+                    }
+                    else if (_currentExpression.EndsWith("√(") || _currentExpression.EndsWith("∛("))
+                    {
+                        _currentExpression = _currentExpression[..^2];
+                    }
+                    else if (_currentExpression.EndsWith(" + ") || _currentExpression.EndsWith(" − ") ||
+                             _currentExpression.EndsWith(" × ") || _currentExpression.EndsWith(" ÷ "))
+                    {
+                        _currentExpression = _currentExpression[..^3];
+                    }
+                    else
+                    {
+                        _currentExpression = _currentExpression[..^1];
+                    }
                 }
-            }
-            else if (!string.IsNullOrEmpty(_currentExpression))
-            {
-                // Умное удаление для научных функций
-                if (_currentExpression.EndsWith("sin(") || _currentExpression.EndsWith("cos(") ||
-                    _currentExpression.EndsWith("tan(") || _currentExpression.EndsWith("cot(") ||
-                    _currentExpression.EndsWith("log("))
-                {
-                    _currentExpression = _currentExpression[..^4];
-                }
-                else if (_currentExpression.EndsWith("ln("))
-                {
-                    _currentExpression = _currentExpression[..^3];
-                }
-                else if (_currentExpression.EndsWith("√(") || _currentExpression.EndsWith("∛("))
-                {
-                    _currentExpression = _currentExpression[..^2];
-                }
-                else if (_currentExpression.EndsWith(" + ") || _currentExpression.EndsWith(" − ") ||
-                         _currentExpression.EndsWith(" × ") || _currentExpression.EndsWith(" ÷ "))
-                {
-                    _currentExpression = _currentExpression[..^3];
-                }
-                else
-                {
-                    _currentExpression = _currentExpression[..^1];
-                }
-            }
 
-            UpdateDisplay();
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
         #endregion
 
@@ -403,158 +528,214 @@ namespace StudyMateProject.Views
         // Тригонометрические функции
         private void OnScientificFunctionClicked(object sender, EventArgs e)
         {
-            if (sender is not Button button) return;
-            string function = button.Text;
-
-            if (_justCalculated)
+            try
             {
-                _currentExpression = $"{function}(";
-                _justCalculated = false;
-            }
-            else
-            {
-                _currentExpression += $"{function}(";
-            }
+                if (sender is not Button button) return;
+                string function = button.Text;
 
-            UpdateDisplay();
+                if (_justCalculated)
+                {
+                    _currentExpression = $"{function}(";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += $"{function}(";
+                }
+
+                UpdateDisplay();
+            }
+            catch
+            {
+                ShowError();
+            }
         }
 
         // Степенные функции
         private void OnSquareClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}²";
-                _justCalculated = false;
-            }
-            else if (!string.IsNullOrEmpty(_currentExpression))
-            {
-                if (_currentExpression.EndsWith(")"))
+                if (_justCalculated)
                 {
-                    _currentExpression += "²";
+                    _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}²";
+                    _justCalculated = false;
                 }
-                else
+                else if (!string.IsNullOrEmpty(_currentExpression))
                 {
-                    var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
-                    string lastPart = parts[^1].Trim();
-
-                    if (double.TryParse(lastPart, out _) || lastPart == "π" || lastPart == "e")
-                    {
-                        parts[^1] = lastPart + "²";
-                        _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
-                    }
-                    else
+                    if (_currentExpression.EndsWith(")"))
                     {
                         _currentExpression += "²";
                     }
+                    else
+                    {
+                        var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
+                        string lastPart = parts[^1].Trim();
+
+                        if (double.TryParse(lastPart, out _) || lastPart == "π" || lastPart == "e")
+                        {
+                            parts[^1] = lastPart + "²";
+                            _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
+                        }
+                        else
+                        {
+                            _currentExpression += "²";
+                        }
+                    }
                 }
+                UpdateDisplay();
             }
-            UpdateDisplay();
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnCubeClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}³";
-                _justCalculated = false;
-            }
-            else if (!string.IsNullOrEmpty(_currentExpression))
-            {
-                if (_currentExpression.EndsWith(")"))
+                if (_justCalculated)
                 {
-                    _currentExpression += "³";
+                    _currentExpression = $"{_calculatorService.FormatResult(_calculatorModel.LastResult)}³";
+                    _justCalculated = false;
                 }
-                else
+                else if (!string.IsNullOrEmpty(_currentExpression))
                 {
-                    var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
-                    string lastPart = parts[^1].Trim();
-
-                    if (double.TryParse(lastPart, out _) || lastPart == "π" || lastPart == "e")
-                    {
-                        parts[^1] = lastPart + "³";
-                        _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
-                    }
-                    else
+                    if (_currentExpression.EndsWith(")"))
                     {
                         _currentExpression += "³";
                     }
+                    else
+                    {
+                        var parts = _currentExpression.Split(new[] { " + ", " − ", " × ", " ÷ " }, StringSplitOptions.None);
+                        string lastPart = parts[^1].Trim();
+
+                        if (double.TryParse(lastPart, out _) || lastPart == "π" || lastPart == "e")
+                        {
+                            parts[^1] = lastPart + "³";
+                            _currentExpression = string.Join(" ", parts).Replace("  ", " ÷ ").Replace("  ", " × ").Replace("  ", " − ").Replace("  ", " + ");
+                        }
+                        else
+                        {
+                            _currentExpression += "³";
+                        }
+                    }
                 }
+                UpdateDisplay();
             }
-            UpdateDisplay();
+            catch
+            {
+                ShowError();
+            }
         }
 
         private void OnPowerYClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + "^";
-                _justCalculated = false;
+                if (_justCalculated)
+                {
+                    _currentExpression = _calculatorService.FormatResult(_calculatorModel.LastResult) + "^";
+                    _justCalculated = false;
+                }
+                else if (!string.IsNullOrEmpty(_currentExpression) &&
+                         !_currentExpression.TrimEnd().EndsWith("^"))
+                {
+                    _currentExpression += "^";
+                }
+                UpdateDisplay();
             }
-            else if (!string.IsNullOrEmpty(_currentExpression) &&
-                     !_currentExpression.TrimEnd().EndsWith("^"))
+            catch
             {
-                _currentExpression += "^";
+                ShowError();
             }
-            UpdateDisplay();
         }
 
         private void OnFactorialClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = "fact(";
-                _justCalculated = false;
+                if (_justCalculated)
+                {
+                    _currentExpression = "fact(";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += "fact(";
+                }
+                UpdateDisplay();
             }
-            else
+            catch
             {
-                _currentExpression += "fact(";
+                ShowError();
             }
-            UpdateDisplay();
         }
 
         // Корни
         private void OnCubeRootClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = "∛(";
-                _justCalculated = false;
+                if (_justCalculated)
+                {
+                    _currentExpression = "∛(";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += "∛(";
+                }
+                UpdateDisplay();
             }
-            else
+            catch
             {
-                _currentExpression += "∛(";
+                ShowError();
             }
-            UpdateDisplay();
         }
 
         // Константы
         private void OnPiClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = "π";
-                _justCalculated = false;
+                if (_justCalculated)
+                {
+                    _currentExpression = "π";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += "π";
+                }
+                UpdateDisplay();
             }
-            else
+            catch
             {
-                _currentExpression += "π";
+                ShowError();
             }
-            UpdateDisplay();
         }
 
         private void OnEClicked(object sender, EventArgs e)
         {
-            if (_justCalculated)
+            try
             {
-                _currentExpression = "e";
-                _justCalculated = false;
+                if (_justCalculated)
+                {
+                    _currentExpression = "e";
+                    _justCalculated = false;
+                }
+                else
+                {
+                    _currentExpression += "e";
+                }
+                UpdateDisplay();
             }
-            else
+            catch
             {
-                _currentExpression += "e";
+                ShowError();
             }
-            UpdateDisplay();
         }
 
         #endregion
@@ -562,46 +743,93 @@ namespace StudyMateProject.Views
         #region Helper Methods
         private int CountOpenParentheses()
         {
-            int count = 0;
-            foreach (char c in _currentExpression)
+            try
             {
-                if (c == '(') count++;
+                int count = 0;
+                foreach (char c in _currentExpression)
+                {
+                    if (c == '(') count++;
+                }
+                return count;
             }
-            return count;
+            catch
+            {
+                return 0;
+            }
         }
 
         private int CountCloseParentheses()
         {
-            int count = 0;
-            foreach (char c in _currentExpression)
+            try
             {
-                if (c == ')') count++;
+                int count = 0;
+                foreach (char c in _currentExpression)
+                {
+                    if (c == ')') count++;
+                }
+                return count;
             }
-            return count;
+            catch
+            {
+                return 0;
+            }
         }
 
         private void UpdateDisplay()
         {
-            DisplayLabel.Text = string.IsNullOrEmpty(_currentExpression) ? "0" : _currentExpression;
+            try
+            {
+                string text = string.IsNullOrEmpty(_currentExpression) ? "0" : _currentExpression;
+                DisplayLabel.Text = text;
 
-            if (_justCalculated)
-            {
-                ExpressionLabel.Text = "Результат";
+                // Автоматическое уменьшение шрифта
+                if (text.Length > 20)
+                    DisplayLabel.FontSize = 24;
+                else if (text.Length > 15)
+                    DisplayLabel.FontSize = 32;
+                else if (text.Length > 10)
+                    DisplayLabel.FontSize = 36;
+                else
+                    DisplayLabel.FontSize = 42;
+
+                // Прокручиваем к правому краю
+                Dispatcher.Dispatch(async () =>
+                {
+                    try
+                    {
+                        await Task.Delay(50);
+                        await DisplayScrollView.ScrollToAsync(2000, 0, false); // Прокрутка к концу
+                        await ExpressionScrollView.ScrollToAsync(2000, 0, false);
+                    }
+                    catch { /* Игнорируем ошибки прокрутки */ }
+                });
+
+                if (_justCalculated)
+                {
+                    ExpressionLabel.Text = "Результат";
+                }
+                else
+                {
+                    ExpressionLabel.Text = string.IsNullOrEmpty(_currentExpression) ? "Введите выражение" : "Ввод...";
+                }
             }
-            else
+            catch
             {
-                ExpressionLabel.Text = string.IsNullOrEmpty(_currentExpression) ? "Введите выражение" : "Ввод...";
+                ShowError();
             }
         }
 
-        private void ShowError(string message)
+        private void ShowError()
         {
-            DisplayLabel.Text = "Ошибка";
-            ExpressionLabel.Text = message;
-
-            _currentExpression = "";
-            _justCalculated = false;
-            _calculatorModel.Reset();
+            try
+            {
+                DisplayLabel.Text = "Ошибка";
+                ExpressionLabel.Text = "Ошибка";
+                _currentExpression = "";
+                _justCalculated = false;
+                _calculatorModel.Reset();
+            }
+            catch { /* Даже обработка ошибок может упасть */ }
         }
         #endregion
     }

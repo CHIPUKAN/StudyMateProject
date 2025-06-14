@@ -1,165 +1,104 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="StudyMateProject.MainPage"
-             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             Title="StudyMate - Главная"
-             BackgroundColor="#F8F9FA">
+             x:Class="StudyMateProject.MainPage"
+             Title="StudyMate">
 
-    <ScrollView>
-        <StackLayout Padding="20" Spacing="20">
+    <Grid>
+        <!-- Точная копия градиента с картинки -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#A8D8EA" Offset="0.0" />
+                <GradientStop Color="#C7E9F1" Offset="0.2" />
+                <GradientStop Color="#E8F6FF" Offset="0.5" />
+                <GradientStop Color="#F7E7F3" Offset="0.7" />
+                <GradientStop Color="#F4C2C2" Offset="1.0" />
+            </LinearGradientBrush>
+        </Grid.Background>
 
-            <!-- Приветствие -->
-            <Frame BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="15" Margin="10,5">
-                <StackLayout>
-                    <Label Text="🧮 Добро пожаловать в StudyMate Calculator!" 
-                           FontSize="24"
+        <ScrollView>
+            <StackLayout Padding="30" Spacing="25">
+
+                <!-- Заголовок -->
+                <StackLayout HorizontalOptions="Center" Spacing="15">
+                    <Label Text="StudyMate" 
+                           FontSize="{OnPlatform iOS=48, Android=44, WinUI=52}" 
+                           FontFamily="Georgia"
                            FontAttributes="Bold"
-                           TextColor="#212529"
-                           Margin="0,10,0,5"
-                           HorizontalOptions="Center" />
-                    <Label Text="Ваш персональный калькулятор для учебы" 
-                           FontSize="16"
-                           TextColor="#6C757D"
-                           HorizontalOptions="Center" />
+                           TextColor="#1B4A5C"
+                           HorizontalOptions="Center"
+                           Margin="0,10,0,0" />
+
+                    <Label Text="SM — ПОВОД СХОДИТЬ НА ПАРЫ!" 
+                           FontSize="{OnPlatform iOS=24, Android=22, WinUI=26}" 
+                           FontFamily="Arial"
+                           FontAttributes="Bold"
+                           TextColor="#A23B72"
+                           HorizontalOptions="Center"
+                           Margin="0,0,0,10" />
                 </StackLayout>
-            </Frame>
 
-            <!-- Быстрые действия -->
-            <Label Text="Выберите тип калькулятора" 
-                   FontSize="18"
-                   FontAttributes="Bold"
-                   TextColor="#212529"
-                   Margin="0,5,0,5" />
+                <!-- Основные функции -->
+                <StackLayout Spacing="20" Margin="0,40,0,0">
 
-            <Grid RowDefinitions="Auto" ColumnDefinitions="*,*" RowSpacing="15" ColumnSpacing="15">
-
-                <!-- Обычный калькулятор -->
-                <Frame Grid.Row="0" Grid.Column="0" BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="15" Margin="5">
-                    <StackLayout>
-                        <Label Text="🧮" FontSize="40" HorizontalOptions="Center" />
-                        <Label Text="Обычный" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
-                        <Label Text="Базовые операции" FontSize="12" TextColor="#6C757D" HorizontalOptions="Center" />
-                        <Button Text="Открыть" 
-                                BackgroundColor="#2E8B57"
-                                TextColor="White"
-                                FontSize="14"
-                                Padding="15,8"
-                                CornerRadius="8"
+                    <!-- Кнопка "Мои тетради" -->
+                    <Frame BackgroundColor="White" 
+                           CornerRadius="20"
+                           HasShadow="True"
+                           Padding="0"
+                           HeightRequest="{OnPlatform iOS=85, Android=80, WinUI=90}">
+                        <Button Text="📚 Мои тетради"
+                                BackgroundColor="Transparent"
+                                TextColor="#2E86AB"
+                                FontSize="{OnPlatform iOS=26, Android=24, WinUI=23}"
+                                FontFamily="Arial"
                                 FontAttributes="Bold"
-                                Clicked="OnCalculatorClicked"
-                                Margin="0,10,0,0" />
-                    </StackLayout>
-                </Frame>
+                                Clicked="OnNotebooksClicked" />
+                    </Frame>
 
-                <!-- Научный калькулятор -->
-                <Frame Grid.Row="0" Grid.Column="1" BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="15" Margin="5">
-                    <StackLayout>
-                        <Label Text="🔬" FontSize="40" HorizontalOptions="Center" />
-                        <Label Text="Научный" FontSize="16" FontAttributes="Bold" HorizontalOptions="Center" />
-                        <Label Text="Все функции" FontSize="12" TextColor="#6C757D" HorizontalOptions="Center" />
-                        <Button Text="Открыть" 
-                                BackgroundColor="#6A5ACD"
-                                TextColor="White"
-                                FontSize="14"
-                                Padding="15,8"
-                                CornerRadius="8"
+                    <!-- Кнопка "Мои напоминания" -->
+                    <Frame BackgroundColor="White" 
+                           CornerRadius="20"
+                           HasShadow="True"
+                           Padding="0"
+                           HeightRequest="{OnPlatform iOS=85, Android=80, WinUI=90}">
+                        <Button Text="⏰ Мои напоминания"
+                                BackgroundColor="Transparent"
+                                TextColor="#A23B72"
+                                FontSize="{OnPlatform iOS=26, Android=24, WinUI=23}"
+                                FontFamily="Arial"
                                 FontAttributes="Bold"
-                                Clicked="OnScientificCalculatorClicked"
-                                Margin="0,10,0,0" />
-                    </StackLayout>
-                </Frame>
+                                Clicked="OnRemindersClicked" />
+                    </Frame>
 
-            </Grid>
+                    <!-- Кнопка "Калькулятор" -->
+                    <Frame BackgroundColor="White" 
+                           CornerRadius="20"
+                           HasShadow="True"
+                           Padding="0"
+                           HeightRequest="{OnPlatform iOS=85, Android=80, WinUI=90}">
+                        <Button Text="🔢 Открыть калькулятор"
+                                BackgroundColor="Transparent"
+                                TextColor="#F18F01"
+                                FontSize="{OnPlatform iOS=26, Android=24, WinUI=23}"
+                                FontFamily="Arial"
+                                FontAttributes="Bold"
+                                Clicked="OnCalculatorClicked" />
+                    </Frame>
 
-            <!-- Возможности обычного калькулятора -->
-            <Label Text="Обычный калькулятор" 
-                   FontSize="18"
-                   FontAttributes="Bold"
-                   TextColor="#212529"
-                   Margin="0,15,0,5" />
-
-            <Frame BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="15" Margin="10,5">
-                <StackLayout Spacing="10">
-                    <Label Text="✅ Базовые операции (+, -, ×, ÷)" FontSize="14" />
-                    <Label Text="✅ Скобки для группировки" FontSize="14" />
-                    <Label Text="✅ Квадратный корень (√)" FontSize="14" />
-                    <Label Text="✅ Работа с десятичными числами" FontSize="14" />
-                    <Label Text="✅ Проценты (%)" FontSize="14" />
                 </StackLayout>
-            </Frame>
 
-            <!-- Возможности научного калькулятора -->
-            <Label Text="Научный калькулятор" 
-                   FontSize="18"
-                   FontAttributes="Bold"
-                   TextColor="#212529"
-                   Margin="0,15,0,5" />
-
-            <Frame BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="15" Margin="10,5">
-                <StackLayout Spacing="10">
-                    <Label Text="🔬 Тригонометрические функции (sin, cos, tan)" FontSize="14" />
-                    <Label Text="🔬 Степенные функции (x², x³, x^y)" FontSize="14" />
-                    <Label Text="🔬 Логарифмы (ln)" FontSize="14" />
-                    <Label Text="🔬 Константы (π, e)" FontSize="14" />
-                    <Label Text="🔬 Все функции обычного калькулятора" FontSize="14" />
-                </StackLayout>
-            </Frame>
-
-            <!-- Статистика использования -->
-            <Label Text="Статистика" 
-                   FontSize="18"
-                   FontAttributes="Bold"
-                   TextColor="#212529"
-                   Margin="0,15,0,5" />
-
-            <Frame BackgroundColor="White" CornerRadius="12" HasShadow="True" Padding="15" Margin="10,5">
-                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="15" ColumnSpacing="15">
-
-                    <StackLayout Grid.Row="0" Grid.Column="0">
-                        <Label Text="🧮" FontSize="30" HorizontalOptions="Center" />
-                        <Label x:Name="CalculationsCountLabel" Text="0" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
-                        <Label Text="Вычислений" FontSize="14" HorizontalOptions="Center" TextColor="#6C757D" />
-                    </StackLayout>
-
-                    <StackLayout Grid.Row="0" Grid.Column="1">
-                        <Label Text="📊" FontSize="30" HorizontalOptions="Center" />
-                        <Label x:Name="SessionTimeLabel" Text="0 мин" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
-                        <Label Text="Время сессии" FontSize="14" HorizontalOptions="Center" TextColor="#6C757D" />
-                    </StackLayout>
-
-                    <!-- Последнее вычисление -->
-                    <StackLayout Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0">
-                        <Label Text="Последнее вычисление:" FontSize="16" FontAttributes="Bold" />
-                        <Label x:Name="LastCalculationLabel" 
-                               Text="Пока нет вычислений" 
-                               FontSize="14" 
-                               TextColor="#6C757D"
-                               FontFamily="Consolas" />
-                    </StackLayout>
-
-                </Grid>
-            </Frame>
-
-            <!-- Советы по использованию -->
-            <Label Text="Совет дня" 
-                   FontSize="18"
-                   FontAttributes="Bold"
-                   TextColor="#212529"
-                   Margin="0,15,0,5" />
-
-            <Frame BackgroundColor="#2E8B57" CornerRadius="12" HasShadow="True" Padding="15" Margin="10,5">
-                <StackLayout>
-                    <Label Text="💡" FontSize="30" HorizontalOptions="Center" />
-                    <Label x:Name="TipOfDayLabel" 
-                           Text="Используйте скобки для сложных вычислений: (2+3)×4 = 20"
-                           FontSize="16"
-                           TextColor="White"
+                <!-- Мотивационный текст -->
+                <StackLayout Margin="0,50,0,0" HorizontalOptions="Center">
+                    <Label Text="Еще сюда че-нибудь пока не знаем" 
+                           FontSize="{OnPlatform iOS=20, Android=18, WinUI=22}"
+                           FontFamily="Arial"
+                           TextColor="Gray"
                            HorizontalOptions="Center"
                            HorizontalTextAlignment="Center" />
                 </StackLayout>
-            </Frame>
 
-        </StackLayout>
-    </ScrollView>
-
+            </StackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>
