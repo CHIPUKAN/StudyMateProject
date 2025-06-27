@@ -6,28 +6,26 @@
              Shell.TabBarIsVisible="False"
              NavigationPage.HasNavigationBar="False">
 
-    <Grid BackgroundColor="White" Padding="30">
+    <Grid BackgroundColor="White">
 
         <ScrollView VerticalOptions="FillAndExpand" 
-                    HorizontalOptions="FillAndExpand">
+                    HorizontalOptions="FillAndExpand"
+                    Padding="{OnPlatform Android='20,40,20,20', Default='30'}">
 
             <StackLayout 
-                Padding="25"
-                Spacing="30"
+                Spacing="{OnPlatform Android=25, Default=30}"
                 VerticalOptions="CenterAndExpand"
-                HorizontalOptions="CenterAndExpand"
-                WidthRequest="450"
-                MaximumWidthRequest="450"
-                MinimumWidthRequest="450">
+                HorizontalOptions="FillAndExpand"
+                Margin="{OnPlatform Android='10,20,10,10', Default='25'}">
 
                 <!-- Заголовок -->
                 <Label Text="StudyMate" 
-                       FontSize="68" 
-                       FontFamily="Comic Sans MS"
+                       FontSize="{OnPlatform Android=48, iOS=68, WinUI=68}" 
+                       FontFamily="{OnPlatform Android='sans-serif', Default='Comic Sans MS'}"
                        FontAttributes="Bold"
                        TextColor="#4A90E2"
                        HorizontalOptions="Center"
-                       Margin="0,30,0,40">
+                       Margin="{OnPlatform Android='0,10,0,30', Default='0,30,0,40'}">
                     <Label.Shadow>
                         <Shadow Brush="Black"
                                 Offset="2,2"
@@ -38,43 +36,47 @@
 
                 <!-- Кнопки основных функций -->
                 <Button Text="Мои тетради"
-                        FontSize="{OnPlatform iOS=28, Android=26, WinUI=30}"
-                        FontFamily="Segoe UI Black"
+                        FontSize="{OnPlatform Android=20, iOS=28, WinUI=30}"
+                        FontFamily="{OnPlatform Android='sans-serif-medium', Default='Segoe UI Black'}"
                         FontAttributes="Bold"
                         TextColor="White"
                         BackgroundColor="#4A90E2"
-                        HeightRequest="90"
-                        WidthRequest="400"
+                        HeightRequest="{OnPlatform Android=70, Default=90}"
+                        HorizontalOptions="FillAndExpand"
+                        MaximumWidthRequest="400"
                         CornerRadius="20"
                         Clicked="OnNotebooksClicked"
-                        HorizontalOptions="Center"
-                        Margin="0,8" />
+                        Margin="{OnPlatform Android='20,8', Default='0,8'}" />
 
                 <Button Text="Мои напоминания"
-                        FontSize="{OnPlatform iOS=28, Android=26, WinUI=30}"
-                        FontFamily="Segoe UI Black"
+                        FontSize="{OnPlatform Android=20, iOS=28, WinUI=30}"
+                        FontFamily="{OnPlatform Android='sans-serif-medium', Default='Segoe UI Black'}"
                         FontAttributes="Bold"
                         TextColor="White"
                         BackgroundColor="#4A90E2"
-                        HeightRequest="90"
-                        WidthRequest="400"
+                        HeightRequest="{OnPlatform Android=70, Default=90}"
+                        HorizontalOptions="FillAndExpand"
+                        MaximumWidthRequest="400"
                         CornerRadius="20"
                         Clicked="OnRemindersClicked"
-                        HorizontalOptions="Center"
-                        Margin="0,8" />
+                        Margin="{OnPlatform Android='20,8', Default='0,8'}" />
 
                 <Button Text="Калькулятор"
-                        FontSize="{OnPlatform iOS=28, Android=26, WinUI=30}"
-                        FontFamily="Segoe UI Black"
+                        FontSize="{OnPlatform Android=20, iOS=28, WinUI=30}"
+                        FontFamily="{OnPlatform Android='sans-serif-medium', Default='Segoe UI Black'}"
                         FontAttributes="Bold"
                         TextColor="White"
                         BackgroundColor="#4A90E2"
-                        HeightRequest="90"
-                        WidthRequest="400"
+                        HeightRequest="{OnPlatform Android=70, Default=90}"
+                        HorizontalOptions="FillAndExpand"
+                        MaximumWidthRequest="400"
                         CornerRadius="20"
                         Clicked="OnCalculatorClicked"
-                        HorizontalOptions="Center"
-                        Margin="0,8" />
+                        Margin="{OnPlatform Android='20,8', Default='0,8'}" />
+
+                <!-- Дополнительное пространство снизу для Android -->
+                <BoxView HeightRequest="{OnPlatform Android=40, Default=0}" 
+                         BackgroundColor="Transparent" />
 
             </StackLayout>
         </ScrollView>
