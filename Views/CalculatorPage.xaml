@@ -53,7 +53,7 @@
         </StackLayout>
         <StackLayout Orientation="Horizontal" 
              HorizontalOptions="Start" 
-             Margin="10,5,10,0">
+             Margin="10,-15,10,0">
 
             <Button x:Name="CopyExpressionButton"
             Text="Скопировать выражение"
